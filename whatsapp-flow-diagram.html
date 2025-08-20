@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Template Bot Flow Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .flow-container {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .flow-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #25d366;
+        }
+        
+        .flow-section h2 {
+            color: #128c7e;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .flow-section h2::before {
+            content: "🔗";
+            font-size: 1.2rem;
+        }
+        
+        .flow-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            position: relative;
+        }
+        
+        .flow-item::before {
+            content: "";
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid #25d366;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .flow-item h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .flow-item p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .flow-item .endpoint {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #1976d2;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .flow-item .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .method.get { background: #d4edda; color: #155724; }
+        .method.post { background: #d1ecf1; color: #0c5460; }
+        .method.delete { background: #f8d7da; color: #721c24; }
+        
+        .architecture-section {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .architecture-section h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+        
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .arch-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .arch-item h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .arch-item p {
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .message-flow {
+            grid-column: 1 / -1;
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .message-flow h2 {
+            color: #856404;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-flow h2::before {
+            content: "💬";
+            font-size: 1.2rem;
+        }
+        
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .step {
+            background: white;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #856404;
+            border: 3px solid #ffc107;
+            position: relative;
+        }
+        
+        .step::after {
+            content: "→";
+            position: absolute;
+            right: -20px;
+            font-size: 1.5rem;
+            color: #ffc107;
+        }
+        
+        .step:last-child::after {
+            display: none;
+        }
+        
+        .step-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .flow-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .step::after {
+                content: "↓";
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WhatsApp Template Bot</h1>
+            <p>Complete Flow Architecture & API Documentation</p>
+        </div>
+        
+        <div class="flow-container">
+            <div class="architecture-section">
+                <h2>🏗️ System Architecture</h2>
+                <div class="architecture-grid">
+                    <div class="arch-item">
+                        <h3>Frontend/Client</h3>
+                        <p>Web interface for template management and message sending</p>
+                    </div>
+                    <div class="arch-item">
+                        <h3>Express.js Server</h3>
+                        <p>RESTful API server handling all WhatsApp operations</p>
+                    </div>
+                    <div class="arch-item">
+                        <h3>Meta Business API</h3>
+                        <p>WhatsApp Business API for sending messages and managing templates</p>
+                    </div>
+                    <div class="arch-item">
+                        <h3>Redis Database</h3>
+                        <p>In-memory storage for conversation history and session management</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-section">
+                <h2>Webhook & Message Flow</h2>
+                <div class="flow-item">
+                    <h3>Webhook Verification</h3>
+                    <p>Meta verifies the webhook endpoint during setup</p>
+                    <div class="endpoint">GET /webhook?hub.mode=subscribe&hub.verify_token=TOKEN&hub.challenge=CHALLENGE</div>
+                    <span class="method get">GET</span>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Message Reception</h3>
+                    <p>Receives incoming WhatsApp messages via webhook</p>
+                    <div class="endpoint">POST /webhook</div>
+                    <span class="method post">POST</span>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Message Processing</h3>
+                    <p>AI-powered message processing with conversation history</p>
+                    <p>Maintains context using Redis for better user experience</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Response Generation</h3>
+                    <p>Generates contextual responses and sends via WhatsApp API</p>
+                    <p>Uses Meta Graph API v18.0 for message delivery</p>
+                </div>
+            </div>
+            
+            <div class="flow-section">
+                <h2>Template Management</h2>
+                <div class="flow-item">
+                    <h3>Create Template</h3>
+                    <p>Create new WhatsApp message templates with variables</p>
+                    <div class="endpoint">POST /create-template</div>
+                    <span class="method post">POST</span>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>List Templates</h3>
+                    <p>Retrieve all available templates for the business account</p>
+                    <div class="endpoint">GET /templates</div>
+                    <span class="method get">GET</span>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Delete Template</h3>
+                    <p>Remove unwanted templates from the system</p>
+                    <div class="endpoint">DELETE /templates/:id</div>
+                    <span class="method delete">DELETE</span>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Send Template Message</h3>
+                    <p>Send pre-approved template messages to users</p>
+                    <div class="endpoint">POST /send-template</div>
+                    <span class="method post">POST</span>
+                </div>
+            </div>
+            
+            <div class="message-flow">
+                <h2>Message Flow Sequence</h2>
+                <div class="flow-steps">
+                    <div class="step-container">
+                        <div class="step">1</div>
+                        <div class="step-label">User sends message</div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">2</div>
+                        <div class="step-label">Meta delivers to webhook</div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">3</div>
+                        <div class="step-label">Bot processes message</div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">4</div>
+                        <div class="step-label">Generate response</div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">5</div>
+                        <div class="step-label">Send via Meta API</div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">6</div>
+                        <div class="step-label">User receives response</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-section">
+                <h2>Template Examples</h2>
+                <div class="flow-item">
+                    <h3>Welcome Message</h3>
+                    <p>Personalized welcome template with user's name variable</p>
+                    <p><strong>Variables:</strong> {{1}} - User's name</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Order Confirmation</h3>
+                    <p>E-commerce order confirmation with multiple variables</p>
+                    <p><strong>Variables:</strong> {{1}} - Name, {{2}} - Order ID, {{3}} - Total, {{4}} - Delivery Date, {{5}} - Tracking URL</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Appointment Reminder</h3>
+                    <p>Healthcare/service appointment reminders</p>
+                    <p><strong>Variables:</strong> {{1}} - Name, {{2}} - Date, {{3}} - Time, {{4}} - Location, {{5}} - Contact</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Customer Support</h3>
+                    <p>Interactive support template with quick reply buttons</p>
+                    <p><strong>Features:</strong> Quick reply buttons for common inquiries</p>
+                </div>
+            </div>
+            
+            <div class="flow-section">
+                <h2>System Features</h2>
+                <div class="flow-item">
+                    <h3>Conversation History</h3>
+                    <p>Maintains last 10 messages per user for context</p>
+                    <p>Stored in Redis for fast access and persistence</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Logging & Monitoring</h3>
+                    <p>Comprehensive logging using Winston with daily rotation</p>
+                    <p>Health check endpoint for monitoring system status</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Error Handling</h3>
+                    <p>Graceful error handling with user-friendly messages</p>
+                    <p>Comprehensive error logging for debugging</p>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>Security</h3>
+                    <p>Webhook verification with secure tokens</p>
+                    <p>Environment variable configuration for sensitive data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

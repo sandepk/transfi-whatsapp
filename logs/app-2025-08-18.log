@@ -1,0 +1,7 @@
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-18 11:40:14"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-18 11:40:14"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-18 11:40:14"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-18 11:40:15"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-18 11:40:15"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-18 12:38:19"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-18 12:38:19"}
