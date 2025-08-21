@@ -17,6 +17,11 @@ import {
 } from './services/redis_client.js';
 import { getUserCreationState } from './common/redis_utils.js';
 import { 
+  userExists, 
+  getUserData, 
+  getUserFullName 
+} from './common/redis_utils.js';
+import { 
   getLiveExchangeRates, 
   isValidCurrencyCode,
   isUserInExchangeRatesFlow,
@@ -139,16 +144,61 @@ app.post('/webhook', async (req, res) => {
 });
 
 // Intent detection functions
-async function detectMoneyIntent(message) {
+async function detectMoneyIntent(messageText) {
   try {
-    const prompt = MONEY_INTENT_PROMPT.replace('{message}', message);
-    const response = await getOpenaiResponse('gpt-4o-mini', false, [
+    const prompt = MONEY_INTENT_PROMPT.replace('{message}', messageText);
+    const aiResponse = await getOpenaiResponse('gpt-4o-mini', false, [
       { role: 'system', content: prompt }
     ]);
-    return response.choices[0].message.content.trim();
+    return aiResponse.choices[0].message.content.trim();
   } catch (error) {
     logger.error(`Error detecting money intent: ${error.message}`);
     return 'GENERAL_QUERY';
+  }
+}
+
+// Handle user verification for money transfer/collection
+async function handleUserVerification(from, messageText) {
+  try {
+    // Check if this is an email verification request
+    const emailMatch = messageText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+    
+    if (emailMatch) {
+      const email = emailMatch[0];
+      logger.info(`User ${from} provided email: ${email}`);
+      
+      // Check if user exists
+      const userExistsResult = await userExists(redisClient, email);
+      
+      if (userExistsResult) {
+        // User exists, get their data
+        const userData = await getUserData(redisClient, email);
+        const fullName = await getUserFullName(redisClient, email);
+        
+        if (userData) {
+          // Store user context for this session
+          await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify({
+            email: email,
+            userId: userData.userId,
+            userType: userData.userType,
+            fullName: fullName
+          }));
+          
+          const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified. You can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
+          
+          return welcomeMessage;
+        }
+      } else {
+        // User doesn't exist, ask for registration
+        return `❌ **Account Not Found**\n\nNo account found with email: ${email}\n\nPlease register first:\n\n• Type \`register\` for individual account\n• Type \`register business\` for business account\n\nOr provide a different email address if you think there's an error.`;
+      }
+    } else {
+      // No email provided, ask for it
+      return `🔐 **Account Verification Required**\n\nTo send or collect money, I need to verify your account.\n\nPlease provide your registered email address:`;
+    }
+  } catch (error) {
+    logger.error(`Error in user verification: ${error.message}`);
+    return "I'm sorry, there was an error verifying your account. Please try again.";
   }
 }
 
@@ -286,31 +336,37 @@ async function processMessage(from, messageText) {
       }
       
       if (moneyIntent === 'SEND_MONEY' || moneyIntent === 'COLLECT_MONEY') {
-        // Ask user if they are individual or business
-        const userTypeQuestion = `💸 **${moneyIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Request**
-
-I'd be happy to help you ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}! 
-
-Before we proceed, I need to know:
-**Are you an individual or a business?**
-
-Please respond with:
-• **"Individual"** - if this is for personal use (sending to family/friends, personal expenses)
-• **"Business"** - if this is for company transactions (payroll, vendor payments, business expenses)
-
-This helps me set up the right type of account for you.`;
+        // Check if user is already verified
+        const userContext = await redisClient.get(`user_context:${from}`);
         
-        // Store the intent in Redis for the next response
-        await redisClient.setEx(`money_intent:${from}`, 300, moneyIntent); // 5 minutes expiry
-        
-        await addToConversationHistory(from, {
-          role: 'assistant',
-          content: userTypeQuestion
-        });
-        return userTypeQuestion;
+        if (userContext) {
+          // User is already verified, proceed with money flow
+          const context = JSON.parse(userContext);
+          const action = moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money';
+          
+          const response = `👋 **Welcome back, ${context.fullName}!**\n\n💰 **${moneyIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Flow**\n\nI'll help you ${action}. This feature is coming soon!\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+          
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        } else {
+          // User needs verification, ask for email
+          const verificationMessage = `🔐 **Account Verification Required**\n\nTo ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}, I need to verify your account.\n\nPlease provide your registered email address:`;
+          
+          // Store the intent in Redis for the next response
+          await redisClient.setEx(`money_intent:${from}`, 300, moneyIntent); // 5 minutes expiry
+          
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: verificationMessage
+          });
+          return verificationMessage;
+        }
       }
     } else {
-      // User has a stored intent, check if they're responding to the user type question
+      // User has a stored intent, check if they're responding to the email verification
       if (messageText.toLowerCase().includes('cancel')) {
         // User wants to cancel the money request
         await redisClient.del(`money_intent:${from}`); // Clear the stored intent
@@ -321,44 +377,20 @@ This helps me set up the right type of account for you.`;
           content: cancelResponse
         });
         return cancelResponse;
-      } else if (messageText.toLowerCase().includes('individual') || messageText.toLowerCase().includes('business')) {
-        const userType = await classifyUserType(messageText);
-        
-        if (userType === 'BUSINESS') {
-          // Start business user registration
-          const response = await startBusinessUserRegistration(redisClient, from);
-          await redisClient.del(`money_intent:${from}`); // Clear the stored intent
-          await addToConversationHistory(from, {
-            role: 'assistant',
-            content: response
-          });
-          return response;
-        } else {
-          // Start individual user registration
-          const response = await startUserRegistration(redisClient, from);
-          await redisClient.del(`money_intent:${from}`); // Clear the stored intent
-          await addToConversationHistory(from, {
-            role: 'assistant',
-            content: response
-          });
-          return response;
-        }
       } else {
-        // User has stored intent but didn't answer the question properly
-        const userTypeQuestion = `💸 **${storedIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Request**
-
-I need to know your account type to continue. Please respond with:
-• **"Individual"** - for personal use
-• **"Business"** - for company transactions
-• **"Cancel"** - to cancel this request
-
-Which type of account do you need?`;
+        // Process email verification
+        const verificationResponse = await handleUserVerification(from, messageText);
+        
+        if (verificationResponse.includes('Welcome back')) {
+          // User verified successfully, clear the stored intent
+          await redisClient.del(`money_intent:${from}`);
+        }
         
         await addToConversationHistory(from, {
           role: 'assistant',
-          content: userTypeQuestion
+          content: verificationResponse
         });
-        return userTypeQuestion;
+        return verificationResponse;
       }
     }
     

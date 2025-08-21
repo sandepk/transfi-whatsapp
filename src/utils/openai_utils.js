@@ -3,6 +3,10 @@ import OpenAI from 'openai';
 // Lazy initialization of OpenAI client
 let openai = null;
 
+// Rate limiting variables
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 5; // 5 milli seconds 
+
 function getOpenAIClient() {
   if (!openai) {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -57,6 +61,16 @@ async function getOpenaiResponse(model, stream = false, messages = []) {
   }
 
   try {
+    // Rate limiting check
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      console.log(`Rate limit: Waiting ${waitTime}ms before next request`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
     const client = getOpenAIClient();
     const response = await client.chat.completions.create({
       model: model,
@@ -69,9 +83,21 @@ async function getOpenaiResponse(model, stream = false, messages = []) {
       stream: stream
     });
     
+    // Update last request time
+    lastRequestTime = Date.now();
+    
     return response;
   } catch (error) {
     console.error(`Error calling OpenAI API: ${error.message}`);
+    
+    // Handle rate limit errors specifically
+    if (error.message.includes('429') || error.message.includes('Rate limit')) {
+      console.log('Rate limit hit, waiting 20 seconds before retry...');
+      await new Promise(resolve => setTimeout(resolve, 20000));
+      // Retry once
+      return getOpenaiResponse(model, stream, messages);
+    }
+    
     throw error;
   }
 }
