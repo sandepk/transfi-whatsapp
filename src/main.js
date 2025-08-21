@@ -92,11 +92,11 @@ app.post('/webhook', async (req, res) => {
         const timestamp = message.timestamp;
         const messageId = message.id;
         
-        // Check if we've already processed this message (deduplication)
-        if (await isMessageProcessed(messageId)) {
-          logger.info(`Message ${messageId} already processed, skipping duplicate`);
-          return;
-        }
+        // // Check if we've already processed this message (deduplication)
+        // if (await isMessageProcessed(messageId)) {
+        //   logger.info(`Message ${messageId} already processed, skipping duplicate`);
+        //   return;
+        // }
         
         logger.info(`Processing new message ${messageId} from ${from}: ${messageText}`);
         

@@ -17,7 +17,7 @@ const USER_REGISTRATION_FLOW = {
   ],
   welcomeMessage: "Welcome! I'll help you create your account. Let me collect some information from you.",
   completionMessage: "Great! I have all the information. Creating your account now...",
-  apiEndpoint: process.env.USER_CREATION_API || 'https://api.transfi.c/contacts'
+  apiEndpoint: process.env.USER_CREATION_API || 'https://sandbox-api.transfi.com/v2/users/individual'
 };
 
 // Business user registration flow configuration
@@ -459,7 +459,7 @@ async function createUserAccount(userData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.USER_CREATION_API_KEY || ''}`
+        'Authorization': `Basic ${process.env.USER_CREATION_API_KEY || ''}`
       },
       body: JSON.stringify(userData)
     });
@@ -473,7 +473,7 @@ async function createUserAccount(userData) {
     const result = await response.json();
     logger.info('User account created successfully:', result);
     
-    return `🎉 Congratulations! Your account has been created successfully!\n\nAccount ID: ${result.id || 'N/A'}\nEmail: ${userData.email}\n\nYou can now log in to your account.`;
+    return `🎉 Congratulations! Your account has been created successfully!\n\nAccount ID: ${result.userId || 'N/A'}\nEmail: ${userData.email}\n\nYou can now log in to your account.`;
     
   } catch (error) {
     logger.error('Error calling user creation API:', error);
@@ -490,7 +490,7 @@ async function createBusinessUserAccount(businessData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BUSINESS_USER_CREATION_API_KEY || ''}`
+        'Authorization': `Basic ${process.env.BUSINESS_USER_CREATION_API_KEY || ''}`
       },
       body: JSON.stringify(businessData)
     });

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual User Creation Flow</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .flow-container {
+            padding: 40px;
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .step-number {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 25px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .step-content {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            flex-grow: 1;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .step-content:hover {
+            border-color: #10b981;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .step-question {
+            color: #475569;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        .step-field {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .step-validation {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .arrow {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid #e2e8f0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            z-index: 1;
+        }
+        .flow-step:last-child .arrow {
+            display: none;
+        }
+        .flow-step:last-child .step-content {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: #10b981;
+        }
+        .flow-step:last-child .step-content .step-title,
+        .flow-step:last-child .step-content .step-question {
+            color: white;
+        }
+        .flow-step:last-child .step-content .step-field {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .flow-step:last-child .step-content .step-validation {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .api-section {
+            background: #f1f5f9;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+            border-left: 5px solid #3b82f6;
+        }
+        .api-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        .api-details {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .api-endpoint {
+            background: #1e293b;
+            color: #10b981;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        .api-method {
+            background: #059669;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .example-data {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #475569;
+            overflow-x: auto;
+        }
+        .legend {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid #e2e8f0;
+        }
+        .legend h3 {
+            margin: 0 0 20px 0;
+            color: #1e293b;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .legend-text {
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Individual User Creation Flow</h1>
+            <p>WhatsApp Bot User Registration Process</p>
+        </div>
+        
+        <div class="flow-container">
+            <!-- Step 1 -->
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Welcome Message</div>
+                    <div class="step-question">"Welcome! I'll help you create your account. Let me collect some information from you."</div>
+                    <div class="step-field">Trigger: User types "register" or "signup"</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Email Address</div>
+                    <div class="step-question">"Please enter your email address:"</div>
+                    <div class="step-field">Field: email</div>
+                    <div class="step-validation">Validation: Email format, not disposable</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">First Name</div>
+                    <div class="step-question">"Please enter your first name:"</div>
+                    <div class="step-field">Field: firstName</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">Last Name</div>
+                    <div class="step-question">"Please enter your last name:"</div>
+                    <div class="step-field">Field: lastName</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="step-title">Date of Birth</div>
+                    <div class="step-question">"Please enter your date of birth (DD-MM-YYYY):"</div>
+                    <div class="step-field">Field: date</div>
+                    <div class="step-validation">Validation: DD-MM-YYYY format, valid date, min 13 years old</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div class="step-title">Country</div>
+                    <div class="step-question">"Please enter your country of citizenship:"</div>
+                    <div class="step-field">Field: country</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 7 -->
+            <div class="flow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <div class="step-title">Gender</div>
+                    <div class="step-question">"Please enter your gender (male/female/other):"</div>
+                    <div class="step-field">Field: gender</div>
+                    <div class="step-validation">Validation: male/female/other only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 8 -->
+            <div class="flow-step">
+                <div class="step-number">8</div>
+                <div class="step-content">
+                    <div class="step-title">Phone Number</div>
+                    <div class="step-question">"Please enter your phone number:"</div>
+                    <div class="step-field">Field: phone</div>
+                    <div class="step-validation">Validation: Phone format</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 9 -->
+            <div class="flow-step">
+                <div class="step-number">9</div>
+                <div class="step-content">
+                    <div class="step-title">Street Address</div>
+                    <div class="step-question">"Please enter your street address:"</div>
+                    <div class="step-field">Field: address.street</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 10 -->
+            <div class="flow-step">
+                <div class="step-number">10</div>
+                <div class="step-content">
+                    <div class="step-title">City</div>
+                    <div class="step-question">"Please enter your city:"</div>
+                    <div class="step-field">Field: address.city</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 11 -->
+            <div class="flow-step">
+                <div class="step-number">11</div>
+                <div class="step-content">
+                    <div class="step-title">Postal Code</div>
+                    <div class="step-question">"Please enter your postal code:"</div>
+                    <div class="step-field">Field: address.postalCode</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Step 12 -->
+            <div class="flow-step">
+                <div class="step-number">12</div>
+                <div class="step-content">
+                    <div class="step-title">State/Province</div>
+                    <div class="step-question">"Please enter your state/province:"</div>
+                    <div class="step-field">Field: address.state</div>
+                    <div class="step-validation">Validation: Text only</div>
+                </div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Final Step -->
+            <div class="flow-step">
+                <div class="step-number">13</div>
+                <div class="step-content">
+                    <div class="step-title">Account Creation</div>
+                    <div class="step-question">"Great! I have all the information. Creating your account now..."</div>
+                    <div class="step-field">Action: Call Transfi API</div>
+                    <div class="step-validation">Result: Success message or error handling</div>
+                </div>
+            </div>
+
+            <!-- API Section -->
+            <div class="api-section">
+                <div class="api-title">🚀 Transfi API Integration</div>
+                <div class="api-details">
+                    <div class="api-method">POST</div>
+                    <div class="api-endpoint">https://sandbox-api.transfi.com/v2/users/individual</div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>Headers:</strong>
+                        <div style="background: #f1f5f9; padding: 10px; border-radius: 5px; margin-top: 5px; font-family: monospace;">
+                            Content-Type: application/json<br>
+                            Authorization: Basic dHJhbnNmaWNvbTp0ZXFPeE5iRXpIdHYweg==
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Request Body Structure:</strong>
+                        <div class="example-data">
+{
+  "address": {
+    "city": "garhwa",
+    "postalCode": "822114",
+    "state": "jharkhand",
+    "street": "main road"
+  },
+  "email": "sandeep@transfi.in",
+  "firstName": "Sandeep",
+  "lastName": "gupta",
+  "date": "23-12-1996",
+  "country": "IN",
+  "gender": "male",
+  "phone": "8210900726"
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <h3>📋 Flow Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #10b981;"></div>
+                    <div class="legend-text">Step Number - Sequential process step</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e0e7ff;"></div>
+                    <div class="legend-text">Field Name - Data field being collected</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fef3c7;"></div>
+                    <div class="legend-text">Validation Rules - Input validation criteria</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3b82f6;"></div>
+                    <div class="legend-text">API Integration - External service call</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

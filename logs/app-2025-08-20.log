@@ -12382,3 +12382,13 @@
 {"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:29:34"}
 {"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMTgwMTNFOEYyNEE1MEVGMDM4AA==","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:29:35"}
 {"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDMUJFOThBQzcxOTJGMUFBQjEA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:29:35"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MzM3OTQyQzBDMEEzQ0RCNzIA from 918210900726: hi","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:30:01"}
+{"level":"info","message":"Response generated: Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:30:01"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:30:01"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMDFGQjk2REI2QjIzQ0ZEQTMyAA==","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:30:02"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MzM3OTQyQzBDMEEzQ0RCNzIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:30:02"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQjlENkVBN0M0QTYyQzEzMzQA from 918210900726: hello","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:31:44"}
+{"level":"info","message":"Response generated: Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:31:44"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:31:44"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQ0UyNUNDNzAzNDE3N0Y0NTY3AA==","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:31:45"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQjlENkVBN0M0QTYyQzEzMzQA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-20 17:31:45"}

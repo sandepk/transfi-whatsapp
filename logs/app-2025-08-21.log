@@ -1,0 +1,218 @@
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:20"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:20"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:20"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:20"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:20"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:29"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:29"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:29"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:29"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:29"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:15:37"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:16:17"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:16:17"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:16:17"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:16:17"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:16:17"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:20"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:20"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:20"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:20"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:20"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:47"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:59"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:59"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:59"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:59"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:19:59"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:32"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:34"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:34"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:34"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:34"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:21:34"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:36"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:36"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:54"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:54"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:54"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:54"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:33:54"}
+{"level":"info","message":"Webhook verified successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:33"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FENzA2NjlCMzE2QTA3QTQ1MEYA from 918210900726: hi","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:53"}
+{"level":"info","message":"Response generated: Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:53"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:53"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNEQ5OUYxMDZGNTlGODgwQzFGAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:54"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FENzA2NjlCMzE2QTA3QTQ1MEYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:35:54"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCN0E1ODI4MkJEQTM1NEQ1REUA from 918210900726: register","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:02"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:02"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOEIzQUU1MzYyRUUxNDU2MDEyAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:04"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCN0E1ODI4MkJEQTM1NEQ1REUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:04"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNzI2MTFGNEM2Qjc2MUY1MDcA from 918210900726: ok","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:11"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:11"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOUQ4Qjg1MDE5RDZFNTczM0MxAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:16"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNzI2MTFGNEM2Qjc2MUY1MDcA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:16"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0MTM2QzBFRjhBMzdDMDY0ODYA from 918210900726: sandeep@transfi.com","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:25"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:25"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNjdCOTdBQ0YxRTExN0FEOUVFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:26"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0MTM2QzBFRjhBMzdDMDY0ODYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:26"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EyMTVDRTQ3REM0QjI5N0UzRDcA from 918210900726: Rajveer","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:33"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:33"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNTM1NkVDRkFGQ0I2NjAyMzNDAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:36"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EyMTVDRTQ3REM0QjI5N0UzRDcA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:36"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FENEU5MzlDNTJDM0ZENzE0MkQA from 918210900726: gupta","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:43"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:43"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNUVFQzc2NjQ1RDkyQjIxNDJFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:44"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FENEU5MzlDNTJDM0ZENzE0MkQA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:44"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FFMjhDMEMwQTUzQ0VFOTY0ODQA from 918210900726: 23-12-1996","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:55"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:55"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMjA3MDY2NjA5MzU3RTZCQUJDAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:55"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FFMjhDMEMwQTUzQ0VFOTY0ODQA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:36:55"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1RDhGODQ4M0EzNzZGRDAxMzgA from 918210900726: IN","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:12"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:12"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQzhBQUVBQ0NCMEY5MUVFMUE0AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:14"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1RDhGODQ4M0EzNzZGRDAxMzgA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:14"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4NUJBNDhDNDhGODg5OUJENkEA from 918210900726: Male","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:23"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:23"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOEYzMTgyN0YxQjQ2MzRGOTU3AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:24"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4NUJBNDhDNDhGODg5OUJENkEA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:37:24"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MkNFNjE4QjFFRTA1N0VCQzUA from 918210900726: 8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:08"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:08"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSRTlDMjE4Nzk4NjIyNzNGREFCAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:09"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MkNFNjE4QjFFRTA1N0VCQzUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:09"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNzZBODM4M0MwNTNGMTNBODIA from 918210900726: jharkahnd","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:16"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:16"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOEQ4RDYxMkJBNUU1MzY1NzQ5AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:17"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNzZBODM4M0MwNTNGMTNBODIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:17"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExQjE5NDg1Q0RBOTUyMDU0NkUA from 918210900726: garhwa","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:22"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:22"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQzk3MTQ0NkYyQUZCQTgyODE2AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:23"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExQjE5NDg1Q0RBOTUyMDU0NkUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:23"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2MkExMTZERjlFQ0ZGQ0U1RUYA from 918210900726: 822114","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:28"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:28"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNkM3RTZFRDE4MUUyMjREMkI2AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:30"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2MkExMTZERjlFQ0ZGQ0U1RUYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:30"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3NUE5RDBGNEQ5NTRFMTAxNEYA from 918210900726: jharkahdn","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:35"}
+{"address":{"city":"garhwa","postalCode":"822114","state":"jharkahdn","street":"jharkahnd"},"country":"IN","date":"23-12-1996","email":"sandeep@transfi.com","firstName":"Rajveer","gender":"Male","lastName":"gupta","level":"info","message":"Creating user account with data:","phone":"8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:35"}
+{"cause":{"code":"ENOTFOUND","errno":-3008,"hostname":"api.transfi.c","syscall":"getaddrinfo"},"level":"error","message":"Error calling user creation API: fetch failed","service":"whatsapp-template-bot","stack":"TypeError: fetch failed\n    at node:internal/deps/undici/undici:12637:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async createUserAccount (file:///app/src/user_creation.js:458:22)\n    at async processUserRegistrationStep (file:///app/src/user_creation.js:144:34)\n    at async processMessage (file:///app/src/main.js:131:24)\n    at async file:///app/src/main.js:104:26","timestamp":"2025-08-21 02:39:35"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:35"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMDAzQThBQTE1RDI0Rjg0NUNBAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:36"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3NUE5RDBGNEQ5NTRFMTAxNEYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:36"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3NkE3NkRERjc0MDZFMzAzOEUA from 918210900726: register","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:57"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:57"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMzg5MTNBMTgzMUMzMDQ1ODZFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:58"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3NkE3NkRERjc0MDZFMzAzOEUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:39:58"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCRTVGOEMzRTA4RkY4MTMwNjUA from 918210900726: ok","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:04"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:04"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSRUQwQjVBNTYyNTVGQzE2NUVFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:05"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCRTVGOEMzRTA4RkY4MTMwNjUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:05"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDMEFERjlENTBEREY5QUVFMjUA from 918210900726: john@google.in","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:21"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:21"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQzNBMjE5NjcyMzcwODQzODIzAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:22"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDMEFERjlENTBEREY5QUVFMjUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:22"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FGNjRBMkQ2NzA2MDY4RkUzQjIA from 918210900726: sandeep","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:28"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:28"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOUYwQUREN0YxRkJGMUMzNThBAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:29"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FGNjRBMkQ2NzA2MDY4RkUzQjIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:29"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EyQTZFRDM4NDcwODlCNzZCREYA from 918210900726: gupta","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:35"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:35"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSM0VEMUY0RkRDQkVCOUJBOTc3AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:36"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EyQTZFRDM4NDcwODlCNzZCREYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:36"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2MkY1NTEwNDJBRTMzOUU3MUUA from 918210900726: 23-12-1996","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:45"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:45"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMzY3QzIwOUJCRDcwRTEyNkYxAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:47"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2MkY1NTEwNDJBRTMzOUU3MUUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:47"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQTExRUUxNjI1RDM4NzE0NEMA from 918210900726: IN","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:53"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:53"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOEFEODhBNzRFNDdFOThDNEY0AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:56"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQTExRUUxNjI1RDM4NzE0NEMA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:40:56"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCNjkzQUExNDQzMjA0OUMyNDUA from 918210900726: male","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:02"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:02"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNjA0QUJFRUJGREIxNkM2QzkwAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:04"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FCNjkzQUExNDQzMjA0OUMyNDUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:04"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2NDMyQzM5MjM1NUNDMTMwNjcA from 918210900726: 8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:12"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:12"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSRTY3OTg1NDQ4MTkyRjY2RTBBAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:15"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2NDMyQzM5MjM1NUNDMTMwNjcA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:15"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OTVFRjVCMURDQjlDOTU0N0YA from 918210900726: Hi","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:18"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:18"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMEU2NDBGN0Y4RUI0QkU1NUREAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:19"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OTVFRjVCMURDQjlDOTU0N0YA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:19"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1NzE3OEMxNTZGMDcwRDAwNTMA from 918210900726: dghshs","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:22"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:22"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSRjM2RURCODlCNjUxREJCQjZCAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:23"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1NzE3OEMxNTZGMDcwRDAwNTMA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:23"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0MUZCNUEzN0Y4MDdDQjA5QTUA from 918210900726: 822114","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:30"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:30"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSODVGMTYwMjE4Njg5RDMxOTk1AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:31"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0MUZCNUEzN0Y4MDdDQjA5QTUA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:31"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQUVFODgwMDU2MEIwRUVEMDcA from 918210900726: sdhs","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:37"}
+{"address":{"city":"dghshs","postalCode":"822114","state":"sdhs","street":"Hi"},"country":"IN","date":"23-12-1996","email":"john@google.in","firstName":"sandeep","gender":"male","lastName":"gupta","level":"info","message":"Creating user account with data:","phone":"8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:37"}
+{"cause":{"code":"ENOTFOUND","errno":-3008,"hostname":"api.transfi.c","syscall":"getaddrinfo"},"level":"error","message":"Error calling user creation API: fetch failed","service":"whatsapp-template-bot","stack":"TypeError: fetch failed\n    at node:internal/deps/undici/undici:12637:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async createUserAccount (file:///app/src/user_creation.js:458:22)\n    at async processUserRegistrationStep (file:///app/src/user_creation.js:144:34)\n    at async processMessage (file:///app/src/main.js:131:24)\n    at async file:///app/src/main.js:104:26","timestamp":"2025-08-21 02:41:37"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:37"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNjNEOEYxMTdDQ0Q3NENGOThFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:38"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0EzQUVFODgwMDU2MEIwRUVEMDcA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:41:38"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:34"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:34"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:34"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:34"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:34"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FGMjQ5Rjg0MDgwQ0EzOTcyOTcA from 918210900726: register","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:54"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:54"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQTlCMzY4MDQ4QTY0NkRFREI5AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:55"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FGMjQ5Rjg0MDgwQ0EzOTcyOTcA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:52:55"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MzgwOEVBMkJGRTQ0RjcxMjIA from 918210900726: ok","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:19"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:19"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSRDM4QUYyQTIyRDAyMjFEMTNEAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:20"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E3MzgwOEVBMkJGRTQ0RjcxMjIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:20"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E5MzNBRkNFNDAzRUM4NjAwMUIA from 918210900726: satyam@transfi.in","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:40"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:40"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSOEJEN0NBNkEyMTg2REU3RDhFAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:41"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E5MzNBRkNFNDAzRUM4NjAwMUIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:41"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FBMzkxQ0NDQzQwMjBGRkNDQzMA from 918210900726: satyam","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:45"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:45"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQUUwQUYwOTIzN0QxQTA4MjREAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:46"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FBMzkxQ0NDQzQwMjBGRkNDQzMA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:46"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExQzZBNzI4Q0ZBQzIwMjIxRTQA from 918210900726: gupta","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:51"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:51"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQUI4NzkzQjNGNUZFQ0U3MzZGAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:52"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExQzZBNzI4Q0ZBQzIwMjIxRTQA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:53:52"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNTFCM0E1MDQwMTcxNDNFMjEA from 918210900726: 23-12-1996","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:01"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:01"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSNjkwRUFGNTk1RTQ5NzAwNTlGAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:02"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FDNTFCM0E1MDQwMTcxNDNFMjEA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:02"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1QUJBNjUxRjg4M0JBMDE0RTIA from 918210900726: IN","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:07"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:07"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMDQwOTU5ODM0M0Q3NzQ3QzFGAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:08"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E1QUJBNjUxRjg4M0JBMDE0RTIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:08"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0REU2RDE1MzNDMDEzQzM5MUIA from 918210900726: male","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:19"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:19"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQUZCRERFOTZERkQ3RDkyMTA1AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:20"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E0REU2RDE1MzNDMDEzQzM5MUIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:20"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OUExQzZFNkI4NTJBMkFGMzIA from 918210900726: 8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:28"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:28"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQjM4NkMwREY3QjVDMTkxRjM0AA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:29"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OUExQzZFNkI4NTJBMkFGMzIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:29"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OUQ2NURCOTIyMjA5RTk5RkYA from 918210900726: garhwa","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:37"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:37"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSODYwMENENEI5OTY1NDZCMDgyAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:38"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E4OUQ2NURCOTIyMjA5RTk5RkYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:38"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExODJBNDE3MTYxQTQwQ0VDQTgA from 918210900726: garhwa","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:44"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:44"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQzdCNEYzMDk1RTRCQzNFMDUxAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:45"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0ExODJBNDE3MTYxQTQwQ0VDQTgA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:45"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FBQ0I5QzZFOEVFQjU1NDQ5QkIA from 918210900726: 822114","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:52"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:52"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSQzRDOEE5RjJGMEQ4MEE4NjVGAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:53"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0FBQ0I5QzZFOEVFQjU1NDQ5QkIA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:53"}
+{"level":"info","message":"Processing new message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2QjE3MEJGOTQyRjNBNzkyNEYA from 918210900726: jharkhand","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:58"}
+{"address":{"city":"garhwa","postalCode":"822114","state":"jharkhand","street":"garhwa"},"country":"IN","date":"23-12-1996","email":"satyam@transfi.in","firstName":"satyam","gender":"male","lastName":"gupta","level":"info","message":"Creating user account with data:","phone":"8210900726","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:58"}
+{"level":"info","message":"User account created successfully:","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:59","userId":"UX-2508210254590557437"}
+{"level":"info","message":"Text mode enabled: sending custom text message","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:54:59"}
+{"level":"info","message":"WhatsApp text message sent successfully: wamid.HBgMOTE4MjEwOTAwNzI2FQIAERgSMkUzNkYyRDk5RTIxNkQwNEIyAA==","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:55:00"}
+{"level":"info","message":"Message wamid.HBgMOTE4MjEwOTAwNzI2FQIAEhgUM0E2QjE3MEJGOTQyRjNBNzkyNEYA processed and sent successfully","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:55:00"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}

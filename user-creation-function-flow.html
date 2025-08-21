@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Creation Function Call Flow</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #0f172a;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .flow-container {
+            padding: 40px;
+        }
+        .flow-section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #334155;
+        }
+        .function-call {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .call-number {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1em;
+            margin-right: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .function-details {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 15px;
+            padding: 25px;
+            flex-grow: 1;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .function-details:hover {
+            border-color: #10b981;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .function-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .function-description {
+            color: #cbd5e1;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        .function-params {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .function-return {
+            background: #065f46;
+            color: #6ee7b7;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+        .arrow {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid #334155;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            z-index: 1;
+        }
+        .function-call:last-child .arrow {
+            display: none;
+        }
+        .trigger-section {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #475569;
+        }
+        .trigger-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+        .trigger-code {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 4px solid #fbbf24;
+        }
+        .data-flow {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #475569;
+        }
+        .data-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #34d399;
+            margin-bottom: 15px;
+        }
+        .data-structure {
+            background: #334155;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            border-left: 4px solid #34d399;
+            overflow-x: auto;
+        }
+        .api-section {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #475569;
+        }
+        .api-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #f87171;
+            margin-bottom: 15px;
+        }
+        .api-details {
+            background: #334155;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #475569;
+        }
+        .api-endpoint {
+            background: #0f172a;
+            color: #10b981;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            word-break: break-all;
+            border: 1px solid #334155;
+        }
+        .api-method {
+            background: #dc2626;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .legend {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid #475569;
+        }
+        .legend h3 {
+            margin: 0 0 20px 0;
+            color: #60a5fa;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .legend-text {
+            color: #cbd5e1;
+        }
+        .error-handling {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #dc2626;
+        }
+        .error-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #f87171;
+            margin-bottom: 15px;
+        }
+        .error-code {
+            background: #334155;
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 4px solid #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ User Creation Function Call Flow</h1>
+            <p>Technical Implementation: Which Functions Are Called When</p>
+        </div>
+        
+        <div class="flow-container">
+            <!-- Trigger Section -->
+            <div class="trigger-section">
+                <div class="trigger-title">🎯 Initial Trigger</div>
+                <div class="trigger-code">
+// User types "register" or "signup" in WhatsApp
+// This triggers the user creation flow in main.js
+processMessage() → detectRegistrationCommand() → startUserRegistration()
+                </div>
+            </div>
+
+            <!-- Function Call Flow -->
+            <div class="flow-section">
+                <div class="section-title">🔄 Function Call Sequence</div>
+                
+                <!-- Function Call 1 -->
+                <div class="function-call">
+                    <div class="call-number">1</div>
+                    <div class="function-details">
+                        <div class="function-name">startUserRegistration(redisClient, whatsappNumber)</div>
+                        <div class="function-description">Initializes user registration state and returns welcome message</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber</div>
+                        <div class="function-return">Returns: Welcome message string</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 2 -->
+                <div class="function-call">
+                    <div class="call-number">2</div>
+                    <div class="function-details">
+                        <div class="function-name">setUserCreationState(redisClient, whatsappNumber, state)</div>
+                        <div class="function-description">Stores initial registration state in Redis with 1-hour expiration</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber, state object</div>
+                        <div class="function-return">Returns: boolean (success/failure)</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 3 -->
+                <div class="function-call">
+                    <div class="call-number">3</div>
+                    <div class="function-details">
+                        <div class="function-name">processUserRegistrationStep(redisClient, whatsappNumber, userInput)</div>
+                        <div class="function-description">Processes each user input during registration flow</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber, userInput</div>
+                        <div class="function-return">Returns: Next question or completion message</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 4 -->
+                <div class="function-call">
+                    <div class="call-number">4</div>
+                    <div class="function-details">
+                        <div class="function-name">getUserCreationState(redisClient, whatsappNumber)</div>
+                        <div class="function-description">Retrieves current registration state from Redis</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber</div>
+                        <div class="function-return">Returns: state object or null</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 5 -->
+                <div class="function-call">
+                    <div class="call-number">5</div>
+                    <div class="function-details">
+                        <div class="function-name">validateUserInput(userInput, validationType)</div>
+                        <div class="function-description">Validates user input based on field type (email, date, phone, etc.)</div>
+                        <div class="function-params">Parameters: userInput, validationType</div>
+                        <div class="function-return">Returns: {valid: boolean, message: string}</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 6 -->
+                <div class="function-call">
+                    <div class="call-number">6</div>
+                    <div class="function-details">
+                        <div class="function-name">setUserCreationState(redisClient, whatsappNumber, updatedState)</div>
+                        <div class="function-description">Updates registration state with new collected data</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber, updatedState</div>
+                        <div class="function-return">Returns: boolean (success/failure)</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 7 -->
+                <div class="function-call">
+                    <div class="call-number">7</div>
+                    <div class="function-details">
+                        <div class="function-name">createUserAccount(state.collectedData)</div>
+                        <div class="function-description">Makes API call to Transfi to create user account</div>
+                        <div class="function-params">Parameters: collectedData object</div>
+                        <div class="function-return">Returns: Success message or error message</div>
+                    </div>
+                    <div class="arrow"></div>
+                </div>
+
+                <!-- Function Call 8 -->
+                <div class="function-call">
+                    <div class="call-number">8</div>
+                    <div class="function-details">
+                        <div class="function-name">setUserCreationState(redisClient, whatsappNumber, null)</div>
+                        <div class="function-description">Clears registration state after completion</div>
+                        <div class="function-params">Parameters: redisClient, whatsappNumber, null</div>
+                        <div class="function-return">Returns: boolean (success/failure)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Flow Section -->
+            <div class="data-flow">
+                <div class="data-title">📊 Data Flow & State Management</div>
+                <div class="data-structure">
+// Initial State Structure
+{
+  type: 'user_registration',
+  currentStep: 0,
+  collectedData: {},
+  startedAt: '2025-08-20T17:30:00.000Z',
+  whatsappNumber: '918210900726'
+}
+
+// After Data Collection (Final State)
+{
+  type: 'user_registration',
+  currentStep: 12,
+  collectedData: {
+    email: 'sandeep@transfi.in',
+    firstName: 'Sandeep',
+    lastName: 'gupta',
+    date: '23-12-1996',
+    country: 'IN',
+    gender: 'male',
+    phone: '8210900726',
+    address: {
+      street: 'main road',
+      city: 'garhwa',
+      postalCode: '822114',
+      state: 'jharkhand'
+    }
+  },
+  startedAt: '2025-08-20T17:30:00.000Z',
+  whatsappNumber: '918210900726'
+}
+                </div>
+            </div>
+
+            <!-- API Integration Section -->
+            <div class="api-section">
+                <div class="api-title">🌐 Transfi API Integration</div>
+                <div class="api-details">
+                    <div class="api-method">POST</div>
+                    <div class="api-endpoint">https://sandbox-api.transfi.com/v2/users/individual</div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #cbd5e1;">Headers:</strong>
+                        <div style="background: #334155; padding: 10px; border-radius: 5px; margin-top: 5px; font-family: monospace; color: #e2e8f0;">
+                            Content-Type: application/json<br>
+                            Authorization: Basic dHJhbnNmaWNvbTp0ZXFPeE5iRXpIdHYweg==
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong style="color: #cbd5e1;">Request Body:</strong>
+                        <div style="background: #334155; border: 1px solid #475569; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.85em; color: #e2e8f0; overflow-x: auto; margin-top: 5px;">
+{
+  "address": {
+    "city": "garhwa",
+    "postalCode": "822114",
+    "state": "jharkhand",
+    "street": "main road"
+  },
+  "email": "sandeep@transfi.in",
+  "firstName": "Sandeep",
+  "lastName": "gupta",
+  "date": "23-12-1996",
+  "country": "IN",
+  "gender": "male",
+  "phone": "8210900726"
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Handling Section -->
+            <div class="error-handling">
+                <div class="error-title">⚠️ Error Handling & Validation</div>
+                <div class="error-code">
+// Input Validation Functions Called:
+validateEmailFormat(input) → Checks email format, disposable domains
+validateDate(input) → Checks DD-MM-YYYY format, valid date, age requirements
+validatePhone(input) → Checks phone number format
+validateGender(input) → Checks male/female/other values
+
+// Error Scenarios:
+- Invalid input → Returns validation error message
+- Redis connection failure → Falls back to in-memory storage
+- API call failure → Returns error message to user
+- Network timeout → Retry logic with exponential backoff
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <h3>📋 Function Flow Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #10b981;"></div>
+                    <div class="legend-text">Function Call Number - Sequential execution order</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #60a5fa;"></div>
+                    <div class="legend-text">Function Name - Actual function being called</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #334155;"></div>
+                    <div class="legend-text">Parameters - Input data passed to function</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #065f46;"></div>
+                    <div class="legend-text">Return Value - What function returns</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fbbf24;"></div>
+                    <div class="legend-text">Trigger - What initiates the flow</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #34d399;"></div>
+                    <div class="legend-text">Data Flow - State management and data structure</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f87171;"></div>
+                    <div class="legend-text">API Integration - External service calls</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

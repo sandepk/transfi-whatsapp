@@ -14,6 +14,11 @@
             "date": 1755694216025,
             "name": "/app/logs/exceptions-2025-08-20.log",
             "hash": "e1717d271184fe78ab19a1090f5adebb463d5ca9bee6c7fbbaaa3c1e782482f9"
+        },
+        {
+            "date": 1755742520320,
+            "name": "/app/logs/exceptions-2025-08-21.log",
+            "hash": "29d764394ff6d757d1e93065e077b9557b1104e5bb22ef4d75512d3b2eea28ec"
         }
     ],
     "hashType": "sha256"
