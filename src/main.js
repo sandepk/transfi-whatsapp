@@ -2,8 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { createTemplate, getTemplates, deleteTemplate, sendTemplateMessage } from './template_utils.js';
-import { logger } from './logger_utils.js';
+import { sendWhatsAppMessage, MESSAGE_CONFIG, handleCreateTemplate, handleGetTemplates, handleDeleteTemplate, handleSendTemplate, handleUpdateMessageConfig, handleGetMessageConfig } from './services/template_service.js';
+import { logger } from './utils/logger_utils.js';
 import { 
   redisClient,
   connectRedis, 
@@ -13,7 +13,16 @@ import {
   markMessageProcessed,
   checkRedisHealth,
   disconnectRedis
-} from './redis_client.js';
+} from './services/redis_client.js';
+import { 
+  getLiveExchangeRates, 
+  isValidCurrencyCode,
+  isUserInExchangeRatesFlow,
+  processExchangeRatesStep,
+  detectExchangeRatesIntent,
+  startExchangeRatesFlow
+} from './services/exchange_rates.js';
+
 import {
   startUserRegistration,
   processUserRegistrationStep,
@@ -25,7 +34,7 @@ import {
   resetUserRegistration,
   getBusinessRegistrationProgress,
   resetBusinessUserRegistration
-} from './user_creation.js';
+} from './services/user_creation.js';
 
 // Load environment variables
 dotenv.config();
@@ -181,12 +190,20 @@ async function processMessage(from, messageText) {
 • \`register business\` - Start business user registration
 • \`status\` - Check your registration progress
 • \`reset\` - Reset your current registration
+
+💱 **Exchange Rates:**
+• Ask about "live rates" or "exchange rates"
+• Ask for specific currency (e.g., "Show me PHP rates")
+• Get real-time deposit and withdraw rates
+
+📋 **Other Commands:**
 • \`help\` - Show this help message
 
 💡 **Examples:**
 • Type \`register\` to create your account
 • Type \`register business\` for business account
-• Type \`status\` to see your progress`;
+• Type \`status\` to see your progress
+• Ask "What are the live rates for PHP?" for exchange rates`;
       
       await addToConversationHistory(from, {
         role: 'assistant',
@@ -273,6 +290,29 @@ Continue with the next question or type \`reset\` to start over.`;
       return noResetResponse;
     }
     
+    // Check if user is in exchange rates flow
+    if (await isUserInExchangeRatesFlow(redisClient, from)) {
+      const response = await processExchangeRatesStep(redisClient, from, messageText);
+      if (response) {
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      }
+    }
+    
+    // Check for exchange rates intent using OpenAI
+    const exchangeRatesIntent = await detectExchangeRatesIntent(messageText);
+    if (exchangeRatesIntent === 'EXCHANGE_RATES') {
+      const response = await startExchangeRatesFlow(redisClient, from, messageText);
+      await addToConversationHistory(from, {
+        role: 'assistant',
+        content: response
+      });
+      return response;
+    }
+    
     // Get conversation history for this user
     let history = await getConversationHistory(from);
     
@@ -283,7 +323,7 @@ Continue with the next question or type \`reset\` to start over.`;
     });
     
     // Simple response logic (you can integrate OpenAI here)
-    let aiResponse = "Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'";
+    let aiResponse = "Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'\nFor exchange rates, ask about 'live rates' or 'exchange rates'";
     
     // Add AI response to history
     await addToConversationHistory(from, {
@@ -300,175 +340,19 @@ Continue with the next question or type \`reset\` to start over.`;
   }
 }
 
-// Note: sendWhatsAppMessage function removed - now using sendTemplateMessage directly
-
-// Configuration for message type
-const MESSAGE_CONFIG = {
-  useTemplate: process.env.USE_TEMPLATE_MESSAGES === 'true', // Set to 'true' in .env to use templates
-  defaultTemplate: process.env.DEFAULT_TEMPLATE || 'template_language',
-  defaultLanguage: process.env.DEFAULT_LANGUAGE || 'en'
-};
-
-// User creation functionality is now in a separate module (src/user_creation.js)
-
-// Send WhatsApp message using Meta Business API
-// This function automatically chooses between template and text messages based on MESSAGE_CONFIG
-// When useTemplate is true: calls sendTemplateMessage function
-// When useTemplate is false: sends normal text message
-async function sendWhatsAppMessage(to, message) {
-  try {
-    const accessToken = process.env.META_ACCESS_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    
-    if (!accessToken || !phoneNumberId) {
-      throw new Error('Missing required environment variables for WhatsApp API');
-    }
-    
-    const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
-    
-    // Choose between template and text message based on configuration
-    let messageData;
-    
-    if (MESSAGE_CONFIG.useTemplate) {
-      // Use sendTemplateMessage function for templates
-      logger.info(`Template mode enabled: sending template message using ${MESSAGE_CONFIG.defaultTemplate}`);
-      return await sendTemplateMessage(to, MESSAGE_CONFIG.defaultTemplate, [], MESSAGE_CONFIG.defaultLanguage);
-    } else {
-      // Send normal text message
-      logger.info(`Text mode enabled: sending custom text message`);
-      messageData = {
-        messaging_product: 'whatsapp',
-        to: to,
-        type: 'text',
-        text: {
-          body: message
-        }
-      };
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(messageData)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        
-        // Handle specific WhatsApp API errors gracefully
-        if (errorData.error && errorData.error.code === 131030) {
-          logger.warn(`Phone number ${to} not in allowed list. Add to whitelist in Meta Business Manager.`);
-          return {
-            success: false,
-            error: 'Phone number not whitelisted',
-            details: 'This phone number needs to be added to the allowed recipients list in your Meta Business account.'
-          };
-        }
-        
-        throw new Error(`WhatsApp API error: ${JSON.stringify(errorData)}`);
-      }
-      
-      const result = await response.json();
-      logger.info(`WhatsApp text message sent successfully: ${result.messages[0].id}`);
-      return result;
-    }
-    
-  } catch (error) {
-    logger.error(`Error sending WhatsApp message: ${error.message}`);
-    throw error;
-  }
-}
+// Template functionality moved to src/services/template_service.js
 
 // Template creation endpoint
-app.post('/create-template', async (req, res) => {
-  try {
-    const templateData = req.body;
-    
-    // Validate required fields
-    if (!templateData.name || !templateData.language || !templateData.category || !templateData.components) {
-      return res.status(400).json({
-        error: 'Missing required fields: name, language, category, components'
-      });
-    }
-    
-    const result = await createTemplate(templateData);
-    res.status(201).json({
-      success: true,
-      template: result
-    });
-    
-  } catch (error) {
-    logger.error(`Error in template creation endpoint: ${error.message}`);
-    res.status(500).json({
-      error: 'Failed to create template',
-      details: error.message
-    });
-  }
-});
+app.post('/create-template', handleCreateTemplate);
 
 // Get all templates endpoint
-app.get('/templates', async (req, res) => {
-  try {
-    const result = await getTemplates();
-    res.status(200).json(result);
-    
-  } catch (error) {
-    logger.error(`Error fetching templates: ${error.message}`);
-    res.status(500).json({
-      error: 'Failed to fetch templates',
-      details: error.message
-    });
-  }
-});
+app.get('/templates', handleGetTemplates);
 
 // Delete template endpoint
-app.delete('/templates/:id', async (req, res) => {
-  try {
-    const templateId = req.params.id;
-    const result = await deleteTemplate(templateId);
-    res.status(200).json({
-      success: true,
-      message: 'Template deleted successfully',
-      result
-    });
-    
-  } catch (error) {
-    logger.error(`Error deleting template: ${error.message}`);
-    res.status(500).json({
-      error: 'Failed to delete template',
-      details: error.message
-    });
-  }
-});
+app.delete('/templates/:id', handleDeleteTemplate);
 
 // Send template message endpoint
-app.post('/send-template', async (req, res) => {
-  try {
-    const { to, templateName, components } = req.body;
-    
-    if (!to || !templateName) {
-      return res.status(400).json({
-        error: 'Missing required fields: to, templateName'
-      });
-    }
-    
-    const result = await sendTemplateMessage(to, templateName, components, 'en');
-    res.status(200).json({
-      success: true,
-      message: 'Template message sent successfully',
-      result
-    });
-    
-  } catch (error) {
-    logger.error(`Error sending template message: ${error.message}`);
-    res.status(500).json({
-      error: 'Failed to send template message',
-      details: error.message
-    });
-  }
-});
+app.post('/send-template', handleSendTemplate);
 
 // WhatsApp configuration check endpoint
 app.get('/whatsapp-config', (req, res) => {
@@ -661,5 +545,7 @@ process.on('SIGINT', async () => {
   await disconnectRedis();
   process.exit(0);
 });
+
+// Exchange rates functionality moved to src/services/exchange_rates.js
 
 export default app; 

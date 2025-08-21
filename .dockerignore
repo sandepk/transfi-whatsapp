@@ -2,7 +2,6 @@ node_modules
 npm-debug.log
 logs
 *.log
-.env
 .env.local
 .env.production
 .git

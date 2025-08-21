@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { logger } from './logger_utils.js';
+import { logger } from '../utils/logger_utils.js';
 
 // Fallback in-memory storage when Redis is not available
 let useFallbackStorage = false;
@@ -12,11 +12,11 @@ const fallbackStorage = {
 
 // Redis client setup
 const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://docker.internal:6379', // Use docker.internal for host access
-  password: process.env.REDIS_PASSWORD,
+  url: process.env.REDIS_URL || 'redis://localhost:6380',
+  password: process.env.REDIS_PASSWORD || 'admin',
   socket: {
-    host: process.env.REDIS_HOST || 'docker.internal', // Use docker.internal for host access
-    port: process.env.REDIS_PORT || 6379,    // Use host port
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT) || 6380,
     connectTimeout: 10000,
     retryDelayOnFailover: 100,
     maxRetriesPerRequest: 3,

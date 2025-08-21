@@ -1,0 +1,38 @@
+# Environment variables - NEVER allow Cursor to access these
+.env
+.env.local
+.env.production
+.env.staging
+.env.*
+
+# API keys and secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Configuration files with sensitive data
+config/secrets.json
+config/credentials.json
+
+# Database credentials
+database.yml
+db.yml
+
+# Log files
+logs/
+*.log
+
+# Node modules
+node_modules/
+
+# Git files
+.git/
+.gitignore
+
+# Docker secrets
+docker-secrets/
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,4 +1,4 @@
-import { logger } from './logger_utils.js';
+import { logger } from '../utils/logger_utils.js';
 
 // User registration flow configuration
 const USER_REGISTRATION_FLOW = {
@@ -17,7 +17,7 @@ const USER_REGISTRATION_FLOW = {
   ],
   welcomeMessage: "Welcome! I'll help you create your account. Let me collect some information from you.",
   completionMessage: "Great! I have all the information. Creating your account now...",
-  apiEndpoint: process.env.USER_CREATION_API || 'https://sandbox-api.transfi.com/v2/users/individual'
+  apiEndpoint: process.env.USER_CREATION_API || `${process.env.TRANSFI_API_BASE_URL || 'https://sandbox-api.transfi.com'}/v2/users/individual`
 };
 
 // Business user registration flow configuration
@@ -36,7 +36,7 @@ const BUSINESS_USER_REGISTRATION_FLOW = {
   ],
   welcomeMessage: "Welcome to Business Registration! I'll help you register your business. Let me collect the required information.",
   completionMessage: "Excellent! I have all your business information. Creating your business account now...",
-  apiEndpoint: process.env.BUSINESS_USER_CREATION_API || 'https://api.transfi.c/business_contacts'
+  apiEndpoint: process.env.BUSINESS_USER_CREATION_API || `${process.env.TRANSFI_API_BASE_URL || 'https://sandbox-api.transfi.com'}/v2/business_contacts`
 };
 
 // Redis key prefix for user creation data
@@ -459,7 +459,7 @@ async function createUserAccount(userData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${process.env.USER_CREATION_API_KEY || ''}`
+        'Authorization': `Basic ${process.env.TRANSFI_BASIC_API_KEY || ''}`
       },
       body: JSON.stringify(userData)
     });
@@ -490,7 +490,7 @@ async function createBusinessUserAccount(businessData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${process.env.BUSINESS_USER_CREATION_API_KEY || ''}`
+        'Authorization': `Basic ${process.env.TRANSFI_BASIC_API_KEY || ''}`
       },
       body: JSON.stringify(businessData)
     });

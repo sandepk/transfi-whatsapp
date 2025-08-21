@@ -6,8 +6,8 @@
  */
 
 import dotenv from 'dotenv';
-import { createTemplate, getTemplates, deleteTemplate, sendTemplateMessage, TEMPLATE_EXAMPLES } from './template_utils.js';
-import { logger } from './logger_utils.js';
+import { createTemplate, getTemplates, deleteTemplate, sendTemplateMessage, TEMPLATE_EXAMPLES } from '../utils/template_utils.js';
+import { logger } from '../utils/logger_utils.js';
 
 // Load environment variables
 dotenv.config();

@@ -216,3 +216,23 @@
 {"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
 {"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
 {"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 02:58:06"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:22"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:22"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:22"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:22"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:22"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:37"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:37"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:37"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:37"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:20:37"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:22:02"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:22:02"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:22:02"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:22:02"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:22:02"}
+{"level":"info","message":"WhatsApp Template Bot server running on port 3002","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:27:47"}
+{"level":"info","message":"Webhook URL: http://localhost:3002/webhook","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:27:47"}
+{"level":"info","message":"Redis Client Connected","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:27:47"}
+{"level":"info","message":"Redis Client Ready","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:27:47"}
+{"level":"info","message":"Redis connection established","service":"whatsapp-template-bot","timestamp":"2025-08-21 03:27:47"}
