@@ -146,7 +146,7 @@ export async function setExchangeRatesState(redisClient, whatsappNumber, state) 
 export async function detectExchangeRatesIntent(messageText) {
   try {
     const response = await getOpenaiResponse(
-      'gpt-3.5-turbo-0125',
+      'gpt-4o-mini',
       false,
       [
         { role: 'system', content: EXCHANGE_RATES_INTENT_PROMPT },
@@ -173,7 +173,7 @@ export async function detectExchangeRatesIntent(messageText) {
 export async function extractCurrencyCode(messageText) {
   try {
     const response = await getOpenaiResponse(
-      'gpt-3.5-turbo-0125',
+      'gpt-4o-mini',
       false,
       [
         { role: 'system', content: CURRENCY_EXTRACTION_PROMPT },

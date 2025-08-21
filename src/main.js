@@ -2,7 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { sendWhatsAppMessage, MESSAGE_CONFIG, handleCreateTemplate, handleGetTemplates, handleDeleteTemplate, handleSendTemplate, handleUpdateMessageConfig, handleGetMessageConfig } from './services/template_service.js';
+import { sendWhatsAppMessage } from './services/template_service.js';
+
 import { logger } from './utils/logger_utils.js';
 import { 
   redisClient,
@@ -14,6 +15,7 @@ import {
   checkRedisHealth,
   disconnectRedis
 } from './services/redis_client.js';
+import { getUserCreationState } from './common/redis_utils.js';
 import { 
   getLiveExchangeRates, 
   isValidCurrencyCode,
@@ -23,18 +25,26 @@ import {
   startExchangeRatesFlow
 } from './services/exchange_rates.js';
 
+// Individual user functions
 import {
   startUserRegistration,
   processUserRegistrationStep,
+  handleConfirmationStep,
   isUserInRegistration,
+  getRegistrationProgress,
+  resetUserRegistration
+} from './users/individual_user.js';
+
+// Business user functions
+import {
   startBusinessUserRegistration,
   processBusinessUserRegistrationStep,
   isUserInBusinessRegistration,
-  getRegistrationProgress,
-  resetUserRegistration,
   getBusinessRegistrationProgress,
   resetBusinessUserRegistration
-} from './services/user_creation.js';
+} from './users/business_user.js';
+import { MONEY_INTENT_PROMPT, USER_TYPE_PROMPT } from './prompts/prompts.js';
+import { getOpenaiResponse } from './utils/openai_utils.js';
 
 // Load environment variables
 dotenv.config();
@@ -60,14 +70,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Note: Redis is now used for conversation history and message deduplication
 
-// Conversation state management functions
-// Conversation state functions are now imported from user_creation.js
-
-// User registration functions are now imported from user_creation.js
-
-// Input validation functions are now imported from user_creation.js
-
-// User creation API functions are now imported from user_creation.js
+// User registration functions are now organized in separate files:
+// - Individual users: users/individual_user.js
+// - Business users: users/business_user.js
+// - Common functionality: common/ folder
 
 // WhatsApp webhook verification endpoint
 app.get('/webhook', (req, res) => {
@@ -112,7 +118,7 @@ app.post('/webhook', async (req, res) => {
         // Process message and generate response
         const response = await processMessage(from, messageText);
         
-        // Send response back to WhatsApp (template or text based on config)
+        // Send response back to WhatsApp
         const sendResult = await sendWhatsAppMessage(from, response);
         
         if (sendResult && sendResult.success !== false) {
@@ -132,18 +138,61 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
+// Intent detection functions
+async function detectMoneyIntent(message) {
+  try {
+    const prompt = MONEY_INTENT_PROMPT.replace('{message}', message);
+    const response = await getOpenaiResponse('gpt-4o-mini', false, [
+      { role: 'system', content: prompt }
+    ]);
+    return response.choices[0].message.content.trim();
+  } catch (error) {
+    logger.error(`Error detecting money intent: ${error.message}`);
+    return 'GENERAL_QUERY';
+  }
+}
+
+async function classifyUserType(response) {
+  try {
+    const prompt = USER_TYPE_PROMPT.replace('{response}', response);
+    const aiResponse = await getOpenaiResponse('gpt-4o-mini', false, [
+      { role: 'system', content: prompt }
+    ]);
+    return aiResponse.choices[0].message.content.trim();
+  } catch (error) {
+    logger.error(`Error classifying user type: ${error.message}`);
+    return 'INDIVIDUAL';
+  }
+}
+
+
+
 // Process incoming message and generate AI response
 async function processMessage(from, messageText) {
   try {
     // Check if user is in individual registration flow
     if (await isUserInRegistration(redisClient, from)) {
-      const response = await processUserRegistrationStep(redisClient, from, messageText);
-      if (response) {
-        await addToConversationHistory(from, {
-          role: 'assistant',
-          content: response
-        });
-        return response;
+      // Check if user is in confirmation step
+      const state = await getUserCreationState(redisClient, from);
+      if (state && state.currentStep === 'confirmation') {
+        const response = await handleConfirmationStep(redisClient, from, messageText);
+        if (response) {
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        }
+      } else {
+        // Regular registration step
+        const response = await processUserRegistrationStep(redisClient, from, messageText);
+        if (response) {
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        }
       }
     }
     
@@ -181,9 +230,146 @@ async function processMessage(from, messageText) {
       }
     }
     
+    // Check for money transfer/collection intent (only if not already in a flow)
+    let storedIntent = await redisClient.get(`money_intent:${from}`);
+    logger.info(`Redis check - storedIntent for ${from}: ${storedIntent}`);
+    
+    // Check if stored intent has expired (Redis TTL will handle this automatically)
+    if (storedIntent) {
+      const ttl = await redisClient.ttl(`money_intent:${from}`);
+      logger.info(`Redis TTL for ${from}: ${ttl}`);
+      if (ttl <= 0) {
+        // Intent expired, clear it
+        await redisClient.del(`money_intent:${from}`);
+        storedIntent = null;
+        logger.info(`Cleared expired intent for ${from}`);
+      }
+    }
+    
+    if (!storedIntent) {
+      logger.info(`No stored intent found, checking message: "${messageText}"`);
+      
+      // First try OpenAI intent detection
+      let moneyIntent;
+      try {
+        moneyIntent = await detectMoneyIntent(messageText);
+        logger.info(`OpenAI detected money intent: ${moneyIntent} for message: "${messageText}"`);
+      } catch (error) {
+        logger.error(`OpenAI intent detection failed: ${error.message}`);
+        moneyIntent = null; // Force fallback detection
+      }
+      
+      // Fallback to simple keyword detection if OpenAI fails or returns unexpected result
+      if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
+        logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
+        
+        // More comprehensive fallback detection
+        const lowerMessage = messageText.toLowerCase();
+        
+        if (lowerMessage.includes('send money') || lowerMessage.includes('want to send') || 
+            lowerMessage.includes('need to send') || lowerMessage.includes('send money') ||
+            lowerMessage.includes('transfer money') || lowerMessage.includes('send cash')) {
+          moneyIntent = 'SEND_MONEY';
+        } else if (lowerMessage.includes('collect money') || lowerMessage.includes('want to collect') || 
+                   lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
+                   lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
+          moneyIntent = 'COLLECT_MONEY';
+        } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
+                   lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
+                   lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
+          moneyIntent = 'EXCHANGE_RATES';
+        } else {
+          moneyIntent = 'GENERAL_QUERY';
+        }
+        
+        logger.info(`Fallback detected money intent: ${moneyIntent} for message: "${messageText}"`);
+      }
+      
+      if (moneyIntent === 'SEND_MONEY' || moneyIntent === 'COLLECT_MONEY') {
+        // Ask user if they are individual or business
+        const userTypeQuestion = `💸 **${moneyIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Request**
+
+I'd be happy to help you ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}! 
+
+Before we proceed, I need to know:
+**Are you an individual or a business?**
+
+Please respond with:
+• **"Individual"** - if this is for personal use (sending to family/friends, personal expenses)
+• **"Business"** - if this is for company transactions (payroll, vendor payments, business expenses)
+
+This helps me set up the right type of account for you.`;
+        
+        // Store the intent in Redis for the next response
+        await redisClient.setEx(`money_intent:${from}`, 300, moneyIntent); // 5 minutes expiry
+        
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: userTypeQuestion
+        });
+        return userTypeQuestion;
+      }
+    } else {
+      // User has a stored intent, check if they're responding to the user type question
+      if (messageText.toLowerCase().includes('cancel')) {
+        // User wants to cancel the money request
+        await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+        const cancelResponse = "✅ Money request cancelled. How else can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'";
+        
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: cancelResponse
+        });
+        return cancelResponse;
+      } else if (messageText.toLowerCase().includes('individual') || messageText.toLowerCase().includes('business')) {
+        const userType = await classifyUserType(messageText);
+        
+        if (userType === 'BUSINESS') {
+          // Start business user registration
+          const response = await startBusinessUserRegistration(redisClient, from);
+          await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        } else {
+          // Start individual user registration
+          const response = await startUserRegistration(redisClient, from);
+          await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        }
+      } else {
+        // User has stored intent but didn't answer the question properly
+        const userTypeQuestion = `💸 **${storedIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Request**
+
+I need to know your account type to continue. Please respond with:
+• **"Individual"** - for personal use
+• **"Business"** - for company transactions
+• **"Cancel"** - to cancel this request
+
+Which type of account do you need?`;
+        
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: userTypeQuestion
+        });
+        return userTypeQuestion;
+      }
+    }
+    
     // Check for other commands
     if (lowerMessage === 'help' || lowerMessage === 'commands') {
       const helpResponse = `🤖 **WhatsApp Bot Commands:**
+
+💸 **Money Services:**
+• Say "I want to send money" - Start send money process
+• Say "I want to collect money" - Start collect money process
+• Ask about "live rates" or "exchange rates" - Get currency rates
 
 📝 **Registration:**
 • \`register\` - Start individual user registration
@@ -191,19 +377,14 @@ async function processMessage(from, messageText) {
 • \`status\` - Check your registration progress
 • \`reset\` - Reset your current registration
 
-💱 **Exchange Rates:**
-• Ask about "live rates" or "exchange rates"
-• Ask for specific currency (e.g., "Show me PHP rates")
-• Get real-time deposit and withdraw rates
-
 📋 **Other Commands:**
 • \`help\` - Show this help message
 
 💡 **Examples:**
-• Type \`register\` to create your account
-• Type \`register business\` for business account
-• Type \`status\` to see your progress
-• Ask "What are the live rates for PHP?" for exchange rates`;
+• Say "I want to send money" to start the process
+• Say "I want to collect money" to start the process
+• Ask "What are the live rates for PHP?" for exchange rates
+• Type \`register\` for direct registration`;
       
       await addToConversationHistory(from, {
         role: 'assistant',
@@ -323,7 +504,7 @@ Continue with the next question or type \`reset\` to start over.`;
     });
     
     // Simple response logic (you can integrate OpenAI here)
-    let aiResponse = "Thank you for your message! I'm a WhatsApp template bot. How can I help you today?\n\nTo register, type: 'register' or 'signup'\nFor business registration, type: 'register business'\nFor exchange rates, ask about 'live rates' or 'exchange rates'";
+    let aiResponse = "Thank you for your message! I'm a WhatsApp financial services bot. How can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Direct Registration:**\n• Type 'register' for individual account\n• Type 'register business' for business account\n\nType 'help' for more commands!";
     
     // Add AI response to history
     await addToConversationHistory(from, {
@@ -340,19 +521,7 @@ Continue with the next question or type \`reset\` to start over.`;
   }
 }
 
-// Template functionality moved to src/services/template_service.js
 
-// Template creation endpoint
-app.post('/create-template', handleCreateTemplate);
-
-// Get all templates endpoint
-app.get('/templates', handleGetTemplates);
-
-// Delete template endpoint
-app.delete('/templates/:id', handleDeleteTemplate);
-
-// Send template message endpoint
-app.post('/send-template', handleSendTemplate);
 
 // WhatsApp configuration check endpoint
 app.get('/whatsapp-config', (req, res) => {
@@ -364,8 +533,7 @@ app.get('/whatsapp-config', (req, res) => {
       hasVerifyToken: !!process.env.WHATSAPP_VERIFY_TOKEN,
       baseUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
       webhookUrl: `${process.env.BASE_URL || 'http://localhost:' + PORT}/webhook`,
-      port: PORT,
-      messageConfig: MESSAGE_CONFIG
+      port: PORT
     };
     
     res.status(200).json({
@@ -375,7 +543,7 @@ app.get('/whatsapp-config', (req, res) => {
         whitelist: 'To fix "phone number not in allowed list" error: Go to Meta Business Manager > WhatsApp Business Account > Configuration > Phone Numbers > Advanced > Allowed Recipients and add the phone number.',
         webhook: 'Set your webhook URL in Meta Business Manager to: ' + config.webhookUrl,
         verifyToken: 'Use the same verify token in Meta Business Manager and your .env file',
-        messageType: 'To switch between template and text messages, use POST /message-config or set USE_TEMPLATE_MESSAGES=true/false in .env'
+
       }
     });
     
@@ -388,48 +556,13 @@ app.get('/whatsapp-config', (req, res) => {
   }
 });
 
-// Dynamic message configuration endpoint
-app.post('/message-config', (req, res) => {
-  try {
-    const { useTemplate, defaultTemplate, defaultLanguage } = req.body;
-    
-    // Update configuration
-    if (useTemplate !== undefined) {
-      MESSAGE_CONFIG.useTemplate = useTemplate === true || useTemplate === 'true';
-      logger.info(`Message type changed to: ${MESSAGE_CONFIG.useTemplate ? 'Template' : 'Text'}`);
-    }
-    
-    if (defaultTemplate) {
-      MESSAGE_CONFIG.defaultTemplate = defaultTemplate;
-      logger.info(`Default template changed to: ${defaultTemplate}`);
-    }
-    
-    if (defaultLanguage) {
-      MESSAGE_CONFIG.defaultLanguage = defaultLanguage;
-      logger.info(`Default language changed to: ${defaultLanguage}`);
-    }
-    
-    res.status(200).json({
-      success: true,
-      message: 'Message configuration updated successfully',
-      currentConfig: MESSAGE_CONFIG
-    });
-    
-  } catch (error) {
-    logger.error(`Error updating message config: ${error.message}`);
-    res.status(500).json({
-      error: 'Failed to update message configuration',
-      details: error.message
-    });
-  }
-});
+
 
 // Debug endpoint to check message processing status
 app.get('/debug/messages', async (req, res) => {
   try {
     const debugInfo = {
       redisHealth: await checkRedisHealth(),
-      messageConfig: MESSAGE_CONFIG,
       timestamp: new Date().toISOString()
     };
     
@@ -483,7 +616,7 @@ app.get('/health', async (req, res) => {
     res.status(200).json({
       status: 'OK',
       timestamp: new Date().toISOString(),
-      service: 'WhatsApp Template Bot',
+      service: 'WhatsApp Bot',
       version: '1.0.0',
       redis: {
         status: redisHealth ? 'connected' : 'disconnected',
@@ -494,7 +627,7 @@ app.get('/health', async (req, res) => {
     res.status(503).json({
       status: 'SERVICE_UNAVAILABLE',
       timestamp: new Date().toISOString(),
-      service: 'WhatsApp Template Bot',
+      service: 'WhatsApp Bot',
       version: '1.0.0',
       redis: {
         status: 'error',
@@ -508,18 +641,15 @@ app.get('/health', async (req, res) => {
 // API documentation endpoint
 app.get('/', (req, res) => {
   res.json({
-    service: 'WhatsApp Template Bot API',
+    service: 'WhatsApp Bot API',
     version: '1.0.0',
     endpoints: {
       'GET /health': 'Health check',
       'GET /webhook': 'Webhook verification',
       'POST /webhook': 'Receive WhatsApp messages',
-      'POST /create-template': 'Create new template',
-      'GET /templates': 'List all templates',
-      'DELETE /templates/:id': 'Delete template',
-      'POST /send-template': 'Send template message',
+
       'GET /whatsapp-config': 'Check WhatsApp configuration',
-      'POST /message-config': 'Update message configuration',
+      
       'GET /debug/messages': 'Debug message processing status',
       'GET /test/registration': 'Test user registration functions'
     },
@@ -529,7 +659,7 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`WhatsApp Template Bot server running on port ${PORT}`);
+  logger.info(`WhatsApp Bot server running on port ${PORT}`);
   logger.info(`Webhook URL: ${process.env.BASE_URL || 'http://localhost:' + PORT}/webhook`);
 });
 

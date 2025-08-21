@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { SUMMARY_PROMPT } from '../prompts/prompts.js';
 
 // Lazy initialization of OpenAI client
 let openai = null;
@@ -77,43 +76,8 @@ async function getOpenaiResponse(model, stream = false, messages = []) {
   }
 }
 
-/**
- * Summarize conversation history in one sentence
- * @param {Array} history - Conversation history
- * @returns {Promise<string>} Summary of conversation
- */
-async function summariseConversation(history) {
-  try {
-    let conversation = "";
-    
-    // Take last 70 messages to avoid token limits
-    const recentHistory = history.slice(-7);
-    
-    for (const item of recentHistory) {
-      if (item.role === 'user') {
-        conversation += `User: ${item.content} `;
-      } else if (item.role === 'assistant') {
-        conversation += `Bot: ${item.content} `;
-      }
-    }
 
-    const openaiResponse = await getOpenaiResponse(
-      "gpt-3.5-turbo-0125",
-      false,
-      [
-        { role: 'system', content: SUMMARY_PROMPT }, 
-        { role: 'user', content: conversation }
-      ]
-    );
-
-    return openaiResponse.choices[0].message.content.trim();
-  } catch (error) {
-    console.error(`Error summarizing conversation: ${error.message}`);
-    return "No previous conversation context available.";
-  }
-}
 
 export {
-  getOpenaiResponse,
-  summariseConversation
+  getOpenaiResponse
 }; 
