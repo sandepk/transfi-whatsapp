@@ -29,6 +29,11 @@ import {
   detectExchangeRatesIntent,
   startExchangeRatesFlow
 } from './services/exchange_rates.js';
+import { 
+  startCollectMoneyFlow,
+  processCollectMoneyStep,
+  isUserInCollectMoneyFlow
+} from './services/collect_money_service.js';
 
 // Individual user functions
 import {
@@ -108,9 +113,45 @@ app.post('/webhook', async (req, res) => {
       if (value.messages && value.messages.length > 0) {
         const message = value.messages[0];
         const from = message.from;
-        const messageText = message.text?.body || '';
         const timestamp = message.timestamp;
         const messageId = message.id;
+        
+        let messageText = '';
+        let isDocument = false;
+        
+        // Handle different message types
+        if (message.text && message.text.body) {
+          messageText = message.text.body;
+        } else if (message.document) {
+          // Handle document upload (PDF)
+          messageText = message.document.filename || 'document';
+          isDocument = true;
+          logger.info(`Received document from ${from}: ${messageText}`);
+          
+          // Download the document
+          try {
+            const documentUrl = message.document.url;
+            const accessToken = process.env.META_ACCESS_TOKEN;
+            
+            const response = await fetch(documentUrl, {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            
+            if (response.ok) {
+              const pdfBuffer = await response.arrayBuffer();
+              // Store the PDF buffer for processing
+              await redisClient.setEx(`pdf_${from}`, 300, Buffer.from(pdfBuffer).toString('base64'));
+              logger.info(`PDF stored for ${from}`);
+            }
+          } catch (error) {
+            logger.error(`Error downloading PDF: ${error.message}`);
+          }
+        } else {
+          logger.warn(`Unsupported message type from ${from}:`, JSON.stringify(message, null, 2));
+          messageText = '';
+        }
         
         // // Check if we've already processed this message (deduplication)
         // if (await isMessageProcessed(messageId)) {
@@ -121,7 +162,7 @@ app.post('/webhook', async (req, res) => {
         logger.info(`Processing new message ${messageId} from ${from}: ${messageText}`);
         
         // Process message and generate response
-        const response = await processMessage(from, messageText);
+        const response = await processMessage(from, messageText, isDocument);
         
         // Send response back to WhatsApp
         const sendResult = await sendWhatsAppMessage(from, response);
@@ -177,12 +218,19 @@ async function handleUserVerification(from, messageText) {
         
         if (userData) {
           // Store user context for this session
-          await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify({
+          const userContext = {
             email: email,
             userId: userData.userId,
             userType: userData.userType,
             fullName: fullName
-          }));
+          };
+          
+          await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify(userContext));
+          logger.info(`User context set for ${from}: ${JSON.stringify(userContext)}`);
+          
+          // Clear any stored money intent since user is now verified
+          await redisClient.del(`money_intent:${from}`);
+          logger.info(`Cleared stored money intent for ${from}`);
           
           const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified. You can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
           
@@ -218,7 +266,7 @@ async function classifyUserType(response) {
 
 
 // Process incoming message and generate AI response
-async function processMessage(from, messageText) {
+async function processMessage(from, messageText, isDocument = false) {
   try {
     // Check if user is in individual registration flow
     if (await isUserInRegistration(redisClient, from)) {
@@ -255,6 +303,35 @@ async function processMessage(from, messageText) {
           content: response
         });
         return response;
+      }
+    }
+    
+    // Check if user is in collect money flow (PRIORITY CHECK - before intent detection)
+    if (await isUserInCollectMoneyFlow(redisClient, from)) {
+      logger.info(`User ${from} is in collect money flow`);
+      let userInput = messageText;
+      
+      // If it's a document, get the PDF buffer from Redis
+      if (isDocument) {
+        const pdfBase64 = await redisClient.get(`pdf_${from}`);
+        if (pdfBase64) {
+          userInput = Buffer.from(pdfBase64, 'base64');
+          await redisClient.del(`pdf_${from}`); // Clean up
+          logger.info(`PDF buffer retrieved for ${from}`);
+        }
+      }
+      
+      logger.info(`Processing collect money step for ${from} with input: ${typeof userInput === 'string' ? userInput : 'Buffer'}`);
+      const response = await processCollectMoneyStep(redisClient, from, userInput, isDocument);
+      if (response) {
+        logger.info(`Collect money step response: ${response.substring(0, 100)}...`);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      } else {
+        logger.warn(`No response from collect money step for ${from}`);
       }
     }
     
@@ -299,58 +376,112 @@ async function processMessage(from, messageText) {
     if (!storedIntent) {
       logger.info(`No stored intent found, checking message: "${messageText}"`);
       
-      // First try OpenAI intent detection
-      let moneyIntent;
-      try {
-        moneyIntent = await detectMoneyIntent(messageText);
-        logger.info(`OpenAI detected money intent: ${moneyIntent} for message: "${messageText}"`);
-      } catch (error) {
-        logger.error(`OpenAI intent detection failed: ${error.message}`);
-        moneyIntent = null; // Force fallback detection
-      }
+      // Check if user has verified context and is making a new money request
+      const userContext = await redisClient.get(`user_context:${from}`);
+      let moneyIntent = null;
       
-      // Fallback to simple keyword detection if OpenAI fails or returns unexpected result
-      if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
-        logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
-        
-        // More comprehensive fallback detection
-        const lowerMessage = messageText.toLowerCase();
-        
-        if (lowerMessage.includes('send money') || lowerMessage.includes('want to send') || 
-            lowerMessage.includes('need to send') || lowerMessage.includes('send money') ||
-            lowerMessage.includes('transfer money') || lowerMessage.includes('send cash')) {
-          moneyIntent = 'SEND_MONEY';
-        } else if (lowerMessage.includes('collect money') || lowerMessage.includes('want to collect') || 
-                   lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
-                   lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
-          moneyIntent = 'COLLECT_MONEY';
-        } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
-                   lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
-                   lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
-          moneyIntent = 'EXCHANGE_RATES';
-        } else {
-          moneyIntent = 'GENERAL_QUERY';
+       if (userContext) {
+         // User is verified, check for new money intent
+         logger.info(`Verified user ${from} detected, checking for money intent in message: "${messageText}"`);
+         try {
+           moneyIntent = await detectMoneyIntent(messageText);
+           logger.info(`OpenAI detected money intent for verified user: ${moneyIntent} for message: "${messageText}"`);
+         } catch (error) {
+           logger.error(`OpenAI intent detection failed: ${error.message}`);
+           moneyIntent = null; // Force fallback detection
+         }
+         
+         // Fallback to simple keyword detection if OpenAI fails
+         if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
+           logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
+           
+           // More comprehensive fallback detection
+           const lowerMessage = messageText.toLowerCase();
+           
+           if (lowerMessage.includes('send money') || lowerMessage.includes('want to send') || 
+               lowerMessage.includes('need to send') || lowerMessage.includes('send money') ||
+               lowerMessage.includes('transfer money') || lowerMessage.includes('send cash')) {
+             moneyIntent = 'SEND_MONEY';
+           } else if (lowerMessage.includes('collect money') || lowerMessage.includes('want to collect') || 
+                      lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
+                      lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
+             moneyIntent = 'COLLECT_MONEY';
+           } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
+                      lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
+                      lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
+             moneyIntent = 'EXCHANGE_RATES';
+           } else {
+             moneyIntent = 'GENERAL_QUERY';
+           }
+           
+           logger.info(`Fallback detected money intent for verified user: ${moneyIntent} for message: "${messageText}"`);
+         }
+       } else {
+        // No user context, check for money intent as before
+        try {
+          moneyIntent = await detectMoneyIntent(messageText);
+          logger.info(`OpenAI detected money intent: ${moneyIntent} for message: "${messageText}"`);
+        } catch (error) {
+          logger.error(`OpenAI intent detection failed: ${error.message}`);
+          moneyIntent = null; // Force fallback detection
         }
         
-        logger.info(`Fallback detected money intent: ${moneyIntent} for message: "${messageText}"`);
+        // Fallback to simple keyword detection if OpenAI fails or returns unexpected result
+        if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
+          logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
+          
+          // More comprehensive fallback detection
+          const lowerMessage = messageText.toLowerCase();
+          
+          if (lowerMessage.includes('send money') || lowerMessage.includes('want to send') || 
+              lowerMessage.includes('need to send') || lowerMessage.includes('send money') ||
+              lowerMessage.includes('transfer money') || lowerMessage.includes('send cash')) {
+            moneyIntent = 'SEND_MONEY';
+          } else if (lowerMessage.includes('collect money') || lowerMessage.includes('want to collect') || 
+                     lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
+                     lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
+            moneyIntent = 'COLLECT_MONEY';
+          } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
+                     lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
+                     lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
+            moneyIntent = 'EXCHANGE_RATES';
+          } else {
+            moneyIntent = 'GENERAL_QUERY';
+          }
+          
+          logger.info(`Fallback detected money intent: ${moneyIntent} for message: "${messageText}"`);
+        }
       }
       
       if (moneyIntent === 'SEND_MONEY' || moneyIntent === 'COLLECT_MONEY') {
+        logger.info(`Processing ${moneyIntent} intent for user ${from}`);
         // Check if user is already verified
         const userContext = await redisClient.get(`user_context:${from}`);
+        logger.info(`User context for ${from}: ${userContext}`);
         
         if (userContext) {
           // User is already verified, proceed with money flow
           const context = JSON.parse(userContext);
-          const action = moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money';
+          logger.info(`Verified user ${from} (${context.fullName}) making ${moneyIntent} request`);
           
-          const response = `👋 **Welcome back, ${context.fullName}!**\n\n💰 **${moneyIntent === 'SEND_MONEY' ? 'Send Money' : 'Collect Money'} Flow**\n\nI'll help you ${action}. This feature is coming soon!\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
-          
-          await addToConversationHistory(from, {
-            role: 'assistant',
-            content: response
-          });
-          return response;
+          if (moneyIntent === 'COLLECT_MONEY') {
+            // Start collect money flow
+            const response = await startCollectMoneyFlow(redisClient, from);
+            await addToConversationHistory(from, {
+              role: 'assistant',
+              content: response
+            });
+            return response;
+          } else {
+            // Send money flow (coming soon)
+            const response = `👋 **Welcome back, ${context.fullName}!**\n\n💰 **Send Money Flow**\n\nI'll help you send money. This feature is coming soon!\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+            
+            await addToConversationHistory(from, {
+              role: 'assistant',
+              content: response
+            });
+            return response;
+          }
         } else {
           // User needs verification, ask for email
           const verificationMessage = `🔐 **Account Verification Required**\n\nTo ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}, I need to verify your account.\n\nPlease provide your registered email address:`;
@@ -400,7 +531,7 @@ async function processMessage(from, messageText) {
 
 💸 **Money Services:**
 • Say "I want to send money" - Start send money process
-• Say "I want to collect money" - Start collect money process
+• Say "I want to collect money" - Start collect money process (upload PDF + create order)
 • Ask about "live rates" or "exchange rates" - Get currency rates
 
 📝 **Registration:**
@@ -416,7 +547,12 @@ async function processMessage(from, messageText) {
 • Say "I want to send money" to start the process
 • Say "I want to collect money" to start the process
 • Ask "What are the live rates for PHP?" for exchange rates
-• Type \`register\` for direct registration`;
+• Type \`register\` for direct registration
+
+📄 **Collect Money Flow:**
+1. Upload PDF invoice
+2. Provide all order details in one message (amount, currency, purpose code, etc.)
+3. Order created + payment link sent!`;
       
       await addToConversationHistory(from, {
         role: 'assistant',
@@ -514,6 +650,8 @@ Continue with the next question or type \`reset\` to start over.`;
         return response;
       }
     }
+    
+
     
     // Check for exchange rates intent using OpenAI
     const exchangeRatesIntent = await detectExchangeRatesIntent(messageText);

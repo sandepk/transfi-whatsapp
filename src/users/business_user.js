@@ -264,9 +264,10 @@ export async function handleBusinessConfirmationStep(redisClient, whatsappNumber
     
     const lowerInput = userInput.toLowerCase().trim();
     
-    if (lowerInput === 'confirm') {
+    if (lowerInput === 'confirm' || lowerInput === 'yes' || lowerInput === 'y') {
       // User confirmed, create business account
-      const userCreationResult = await createBusinessUserAccount(state.collectedData, redisClient);
+      const userDataWithWhatsApp = { ...state.collectedData, whatsappNumber };
+      const userCreationResult = await createBusinessUserAccount(userDataWithWhatsApp, redisClient);
       await setBusinessUserCreationState(redisClient, whatsappNumber, null); // Clear state
       return userCreationResult;
     } else if (lowerInput === 'edit') {
@@ -274,7 +275,7 @@ export async function handleBusinessConfirmationStep(redisClient, whatsappNumber
       return await resetBusinessUserRegistration(redisClient, whatsappNumber);
     } else {
       // Invalid input
-      return "Please type 'confirm' to proceed with business account creation, or 'edit' to start over.";
+      return "Please type 'confirm', 'yes', or 'y' to proceed with business account creation, or 'edit' to start over.";
     }
     
   } catch (error) {
@@ -289,5 +290,26 @@ export async function createBusinessUserAccount(userData, redisClient = null) {
   const successMessage = `${BUSINESS_USER_REGISTRATION_FLOW.completionMessage}\n\n✅ Your business account has been created successfully! You can now start using our business money transfer services.`;
   const errorMessage = "❌ There was an error creating your business account.";
   
-  return await makeBusinessApiCall(endpoint, userData, successMessage, errorMessage, redisClient);
+  const result = await makeBusinessApiCall(endpoint, userData, successMessage, errorMessage, redisClient);
+  
+  // If account creation was successful, set user context for current session
+  if (result.includes('successfully') && redisClient) {
+    try {
+      const userContext = {
+        email: userData.em,
+        userId: userData.userId || 'pending', // Will be updated when API response is processed
+        userType: 'business',
+        fullName: userData.businessName,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Set user context for current WhatsApp session
+      await redisClient.setEx(`user_context:${userData.whatsappNumber || 'unknown'}`, 3600, JSON.stringify(userContext));
+      logger.info(`User context set for WhatsApp session after business account creation`);
+    } catch (error) {
+      logger.error(`Error setting user context after business account creation: ${error.message}`);
+    }
+  }
+  
+  return result;
 }

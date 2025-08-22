@@ -269,9 +269,10 @@ export async function handleConfirmationStep(redisClient, whatsappNumber, userIn
     
     const lowerInput = userInput.toLowerCase().trim();
     
-    if (lowerInput === 'confirm') {
+    if (lowerInput === 'confirm' || lowerInput === 'yes' || lowerInput === 'y') {
       // User confirmed, create account
-      const userCreationResult = await createUserAccount(state.collectedData, redisClient);
+      const userDataWithWhatsApp = { ...state.collectedData, whatsappNumber };
+      const userCreationResult = await createUserAccount(userDataWithWhatsApp, redisClient);
       await setUserCreationState(redisClient, whatsappNumber, null); // Clear state
       return userCreationResult;
     } else if (lowerInput === 'edit') {
@@ -279,7 +280,7 @@ export async function handleConfirmationStep(redisClient, whatsappNumber, userIn
       return await resetUserRegistration(redisClient, whatsappNumber);
     } else {
       // Invalid input
-      return "Please type 'confirm' to proceed with account creation, or 'edit' to start over.";
+      return "Please type 'confirm', 'yes', or 'y' to proceed with account creation, or 'edit' to start over.";
     }
     
   } catch (error) {
@@ -294,5 +295,26 @@ export async function createUserAccount(userData, redisClient = null) {
   const successMessage = `${USER_REGISTRATION_FLOW.completionMessage}\n\n✅ Your individual account has been created successfully! You can now start using our money transfer services.`;
   const errorMessage = "❌ There was an error creating your account.";
   
-  return await makeApiCall(endpoint, userData, successMessage, errorMessage, redisClient);
+  const result = await makeApiCall(endpoint, userData, successMessage, errorMessage, redisClient);
+  
+  // If account creation was successful, set user context for current session
+  if (result.includes('successfully') && redisClient) {
+    try {
+      const userContext = {
+        email: userData.email,
+        userId: userData.userId || 'pending', // Will be updated when API response is processed
+        userType: 'individual',
+        fullName: `${userData.firstName} ${userData.lastName}`,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Set user context for current WhatsApp session
+      await redisClient.setEx(`user_context:${userData.whatsappNumber || 'unknown'}`, 3600, JSON.stringify(userContext));
+      logger.info(`User context set for WhatsApp session after account creation`);
+    } catch (error) {
+      logger.error(`Error setting user context after account creation: ${error.message}`);
+    }
+  }
+  
+  return result;
 }
