@@ -5,13 +5,14 @@ import {
   setBusinessUserCreationState 
 } from '../common/redis_utils.js';
 import { makeBusinessApiCall, handleAddressField } from '../common/api_client.js';
+import { startCollectMoneyFlow } from '../services/collect_money_service.js';
 
 // Business user registration flow configuration
 export const BUSINESS_USER_REGISTRATION_FLOW = {
   steps: [
     { field: 'em', question: 'Business Email Address:', validation: 'email' },
     { field: 'businessName', question: 'Business/Company Name:', validation: 'text' },
-    { field: 'country', question: 'Country of Registration:', validation: 'text' },
+    { field: 'country', question: 'Country Code (e.g., IN):', validation: 'countryCode' },
     { field: 'regNo', question: 'Business Registration Number:', validation: 'text' },
     { field: 'date', question: 'Company Incorporation Date (DD-MM-YYYY):', validation: 'business_date' },
     { field: 'phone', question: 'Business Phone Number:', validation: 'phone' },
@@ -26,7 +27,7 @@ Please provide all the required information in the following format (one field p
 
 Business Email Address:
 Business/Company Name:
-Country of Registration:
+Country Code (e.g., IN):
 Business Registration Number:
 Company Incorporation Date (DD-MM-YYYY):
 Business Phone Number:
@@ -38,7 +39,7 @@ Business State/Province:
 Example:
 business@company.com
 ABC Corporation Ltd
-India
+IN
 REG123456789
 15-03-2020
 9876543210
@@ -98,6 +99,18 @@ async function processBulkBusinessInput(redisClient, whatsappNumber, userInput, 
   try {
     logger.info(`Processing bulk business input for ${whatsappNumber}`);
     
+    // Check if user is trying to make a money request instead of providing registration data
+    const lowerInput = userInput.toLowerCase();
+    if (lowerInput.includes('collect money') || lowerInput.includes('send money') || 
+        lowerInput.includes('want to collect') || lowerInput.includes('want to send') ||
+        lowerInput.includes('i want to collect') || lowerInput.includes('i want to send')) {
+      
+      // Clear registration state and let main.js handle the money request
+      await setBusinessUserCreationState(redisClient, whatsappNumber, null);
+      
+      return `🔄 **Registration Cancelled**\n\nI see you want to ${lowerInput.includes('collect') ? 'collect money' : 'send money'}!\n\nLet me redirect you to the money flow. Please try your request again.`;
+    }
+    
     // Split input by lines and trim whitespace
     const lines = userInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
@@ -110,7 +123,7 @@ Please provide all required information in this format:
 
 Business Email Address:
 Business/Company Name:
-Country of Registration:
+Country Code (e.g., IN):
 Business Registration Number:
 Company Incorporation Date (DD-MM-YYYY):
 Business Phone Number:
@@ -306,6 +319,22 @@ export async function createBusinessUserAccount(userData, redisClient = null) {
       // Set user context for current WhatsApp session
       await redisClient.setEx(`user_context:${userData.whatsappNumber || 'unknown'}`, 3600, JSON.stringify(userContext));
       logger.info(`User context set for WhatsApp session after business account creation`);
+      
+      // Check if there's a pending money intent to resume
+      const pendingMoneyIntent = await redisClient.get(`pending_money_intent:${userData.whatsappNumber}`);
+      if (pendingMoneyIntent) {
+        // Clear the pending intent
+        await redisClient.del(`pending_money_intent:${userData.whatsappNumber}`);
+        
+        // Resume the money flow
+        if (pendingMoneyIntent === 'COLLECT_MONEY') {
+          const collectMoneyResponse = await startCollectMoneyFlow(redisClient, userData.whatsappNumber);
+          return `${result}\n\n🔄 **Resuming Collect Money Flow**\n\n${collectMoneyResponse}`;
+        } else if (pendingMoneyIntent === 'SEND_MONEY') {
+          const sendMoneyResponse = `💰 **Send Money Flow Resumed**\n\n👋 **Welcome, ${userData.businessName}!**\n\nI'll help you send money! Here's what we need:\n\n1. **Recipient Details** - Who you want to send money to\n2. **Amount & Currency** - How much and in what currency\n3. **Purpose** - Reason for the transfer\n4. **Payment Method** - How you want to pay\n\n**Examples of what you can say:**\n• "I want to send 1000 PHP to John Doe for rent"\n• "Send 500 USD to my sister for birthday"\n• "Transfer 2000 INR to vendor for services"\n\n**This feature is coming soon!**\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+          return `${result}\n\n🔄 **Resuming Send Money Flow**\n\n${sendMoneyResponse}`;
+        }
+      }
     } catch (error) {
       logger.error(`Error setting user context after business account creation: ${error.message}`);
     }

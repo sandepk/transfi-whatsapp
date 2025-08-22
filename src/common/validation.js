@@ -155,6 +155,7 @@ export function fastValidation(input, validationType) {
       };
     
     case 'country':
+    case 'countryCode':
       const countryRegex = /^[A-Z]{2,3}$/;
       return {
         valid: countryRegex.test(trimmedInput.toUpperCase()),

@@ -228,17 +228,33 @@ async function handleUserVerification(from, messageText) {
           await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify(userContext));
           logger.info(`User context set for ${from}: ${JSON.stringify(userContext)}`);
           
-          // Clear any stored money intent since user is now verified
-          await redisClient.del(`money_intent:${from}`);
-          logger.info(`Cleared stored money intent for ${from}`);
+          // Get the stored money intent to continue with the original request
+          const storedIntent = await redisClient.get(`money_intent:${from}`);
+          logger.info(`Retrieved stored money intent for ${from}: ${storedIntent}`);
           
-          const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified. You can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
-          
-          return welcomeMessage;
+          if (storedIntent === 'COLLECT_MONEY') {
+            // Continue with collect money flow
+            await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+            const collectMoneyResponse = await startCollectMoneyFlow(redisClient, from);
+            return `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${collectMoneyResponse}`;
+          } else if (storedIntent === 'SEND_MONEY') {
+            // Continue with send money flow
+            await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+            const sendMoneyResponse = `💰 **Send Money Flow**\n\n👋 **Welcome, ${fullName}!**\n\nI'll help you send money! Here's what we need:\n\n1. **Recipient Details** - Who you want to send money to\n2. **Amount & Currency** - How much and in what currency\n3. **Purpose** - Reason for the transfer\n4. **Payment Method** - How you want to pay\n\n**Examples of what you can say:**\n• "I want to send 1000 PHP to John Doe for rent"\n• "Send 500 USD to my sister for birthday"\n• "Transfer 2000 INR to vendor for services"\n\n**This feature is coming soon!**\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+            return `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${sendMoneyResponse}`;
+          } else {
+            // No stored intent, show general options
+            const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified. You can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
+            return welcomeMessage;
+          }
         }
       } else {
-        // User doesn't exist, ask for registration
-        return `❌ **Account Not Found**\n\nNo account found with email: ${email}\n\nPlease register first:\n\n• Type \`register\` for individual account\n• Type \`register business\` for business account\n\nOr provide a different email address if you think there's an error.`;
+        // User doesn't exist, ask for registration type directly
+        await redisClient.setEx(`registration_intent:${from}`, 300, 'pending');
+        await redisClient.setEx(`user_email:${from}`, 300, email); // Store email for later use
+        await redisClient.setEx(`pending_money_intent:${from}`, 300, await redisClient.get(`money_intent:${from}`)); // Store the original money intent
+        
+        return `❌ **Account Not Found**\n\nNo account found with email: ${email}\n\nLet me help you create an account! Are you an individual or a business?\n\nPlease respond with:\n• **"Individual"** - if this is for personal use\n• **"Business"** - if this is for company transactions\n\nOr provide a different email address if you think there's an error.`;
       }
     } else {
       // No email provided, ask for it
@@ -265,11 +281,55 @@ async function classifyUserType(response) {
 
 
 
+// Handle exit/cancel requests from any flow
+async function handleExitRequest(from, messageText) {
+  const lowerMessage = messageText.toLowerCase();
+  const exitKeywords = ['exit', 'cancel', 'stop', 'quit', 'back', 'menu', 'main menu', 'help', 'no', 'nevermind', 'never mind', 'end', 'finish', 'done'];
+  
+  return exitKeywords.some(keyword => lowerMessage.includes(keyword));
+}
+
+// Exit from all flows and return to main menu
+async function exitFromAllFlows(redisClient, from) {
+  try {
+    // Clear all flow states
+    await redisClient.del(`user_registration:${from}`);
+    await redisClient.del(`business_user_registration:${from}`);
+    await redisClient.del(`collect_money:${from}`);
+    await redisClient.del(`exchange_rates:${from}`);
+    await redisClient.del(`money_intent:${from}`);
+    await redisClient.del(`registration_intent:${from}`);
+    await redisClient.del(`registration_step:${from}`);
+    await redisClient.del(`user_email:${from}`);
+    await redisClient.del(`pending_money_intent:${from}`);
+    
+    // Clear any PDF buffers
+    await redisClient.del(`pdf_${from}`);
+    
+    logger.info(`Exited from all flows for user ${from}`);
+    
+    return `✅ **Exited Successfully!**\n\nYou're back to the main menu. How can I help you today?\n\n💸 **Money Services:**\n• Say "I want to send money" to start sending money\n• Say "I want to collect money" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Registration:**\n• Say "register" to create an individual account\n• Say "register business" to create a business account\n\n💡 **Examples:**\n• "I want to send 1000 PHP to John for rent"\n• "I want to collect money" (then upload PDF)\n• "What are the live rates for PHP?"\n\n🚪 **Tip:** You can type \`exit\`, \`cancel\`, \`stop\`, \`quit\`, \`back\`, \`menu\`, \`no\`, \`nevermind\`, \`end\`, \`finish\`, or \`done\` at any time to return here.`;
+  } catch (error) {
+    logger.error(`Error exiting from flows: ${error.message}`);
+    return "I'm sorry, there was an error. Please try again.";
+  }
+}
+
 // Process incoming message and generate AI response
 async function processMessage(from, messageText, isDocument = false) {
   try {
     // Check if user is in individual registration flow
     if (await isUserInRegistration(redisClient, from)) {
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
       // Check if user is in confirmation step
       const state = await getUserCreationState(redisClient, from);
       if (state && state.currentStep === 'confirmation') {
@@ -283,19 +343,29 @@ async function processMessage(from, messageText, isDocument = false) {
         }
       } else {
         // Regular registration step
-        const response = await processUserRegistrationStep(redisClient, from, messageText);
-        if (response) {
-          await addToConversationHistory(from, {
-            role: 'assistant',
-            content: response
-          });
-          return response;
+      const response = await processUserRegistrationStep(redisClient, from, messageText);
+      if (response) {
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
         }
       }
     }
     
     // Check if user is in business registration flow
     if (await isUserInBusinessRegistration(redisClient, from)) {
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
       const response = await processBusinessUserRegistrationStep(redisClient, from, messageText);
       if (response) {
         await addToConversationHistory(from, {
@@ -309,6 +379,17 @@ async function processMessage(from, messageText, isDocument = false) {
     // Check if user is in collect money flow (PRIORITY CHECK - before intent detection)
     if (await isUserInCollectMoneyFlow(redisClient, from)) {
       logger.info(`User ${from} is in collect money flow`);
+      
+      // Check for exit request first (but not for document uploads)
+      if (!isDocument && await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
       let userInput = messageText;
       
       // If it's a document, get the PDF buffer from Redis
@@ -338,17 +419,258 @@ async function processMessage(from, messageText, isDocument = false) {
     // Check for registration commands
     const lowerMessage = messageText.toLowerCase();
     if (lowerMessage.includes('register') || lowerMessage.includes('signup') || lowerMessage.includes('create account')) {
-      if (lowerMessage.includes('business') || lowerMessage.includes('company') || lowerMessage.includes('corporate')) {
-        // Start business user registration
-        const response = await startBusinessUserRegistration(redisClient, from);
+      // Ask user to choose between individual or business
+      const response = "👋 **Welcome!**\n\nI'd be happy to help you register! Before we proceed, I need to know:\n\n**Are you an individual or a business?**\n\nPlease respond with:\n• **\"Individual\"** - if this is for personal use\n• **\"Business\"** - if this is for company transactions\n\nThis helps me set up the right type of account for you.";
+      
+      // Store registration intent
+      await redisClient.setEx(`registration_intent:${from}`, 300, 'pending');
+      
+      await addToConversationHistory(from, {
+        role: 'assistant',
+        content: response
+      });
+      return response;
+    }
+    
+    // Check if user is responding to registration type question
+    const registrationIntent = await redisClient.get(`registration_intent:${from}`);
+    if (registrationIntent === 'pending') {
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
+      const lowerResponse = messageText.toLowerCase();
+      
+      // Check if user provided an email instead of choosing individual/business
+      const emailMatch = messageText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+      if (emailMatch) {
+        // User provided a different email, check it
+        const email = emailMatch[0];
+        const userExistsResult = await userExists(redisClient, email);
+        
+        if (userExistsResult) {
+          // User exists with this new email
+          const userData = await getUserData(redisClient, email);
+          const fullName = await getUserFullName(redisClient, email);
+          
+          if (userData) {
+            // Store user context for this session
+            const userContext = {
+              email: email,
+              userId: userData.userId,
+              userType: userData.userType,
+              fullName: fullName
+            };
+            
+            await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify(userContext));
+            
+            // Check for stored money intent before clearing
+            const storedIntent = await redisClient.get(`money_intent:${from}`);
+            logger.info(`Retrieved stored money intent for ${from}: ${storedIntent}`);
+            
+            // Clear registration intent
+            await redisClient.del(`registration_intent:${from}`);
+            await redisClient.del(`user_email:${from}`);
+            
+            if (storedIntent === 'COLLECT_MONEY') {
+              // Continue with collect money flow
+              await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+              const collectMoneyResponse = await startCollectMoneyFlow(redisClient, from);
+              const response = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${collectMoneyResponse}`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: response
+              });
+              return response;
+            } else if (storedIntent === 'SEND_MONEY') {
+              // Continue with send money flow
+              await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+              const sendMoneyResponse = `💰 **Send Money Flow**\n\n👋 **Welcome, ${fullName}!**\n\nI'll help you send money! Here's what we need:\n\n1. **Recipient Details** - Who you want to send money to\n2. **Amount & Currency** - How much and in what currency\n3. **Purpose** - Reason for the transfer\n4. **Payment Method** - How you want to pay\n\n**Examples of what you can say:**\n• "I want to send 1000 PHP to John Doe for rent"\n• "Send 500 USD to my sister for birthday"\n• "Transfer 2000 INR to vendor for services"\n\n**This feature is coming soon!**\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+              const response = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${sendMoneyResponse}`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: response
+              });
+              return response;
+            } else {
+              // No stored intent, show general options
+              const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ **Your account is verified!**\n\nYou can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: welcomeMessage
+              });
+              return welcomeMessage;
+            }
+          }
+        } else {
+          // Still no account found with new email, ask again for individual/business
+          await redisClient.setEx(`user_email:${from}`, 300, email); // Update stored email
+          
+          const response = `❌ **Account Not Found**\n\nNo account found with email: ${email} either.\n\nLet me help you create an account! Are you an individual or a business?\n\nPlease respond with:\n• **"Individual"** - if this is for personal use\n• **"Business"** - if this is for company transactions`;
+          
+          await addToConversationHistory(from, {
+            role: 'assistant',
+            content: response
+          });
+          return response;
+        }
+      }
+      
+      if (lowerResponse.includes('individual') || lowerResponse.includes('personal') || lowerResponse.includes('person')) {
+        // User chose individual registration, start it directly
+        const response = await startUserRegistration(redisClient, from);
+        // Clear registration intent
+        await redisClient.del(`registration_intent:${from}`);
+        await redisClient.del(`user_email:${from}`);
+        
         await addToConversationHistory(from, {
           role: 'assistant',
           content: response
         });
         return response;
+        
+      } else if (lowerResponse.includes('business') || lowerResponse.includes('company') || lowerResponse.includes('corporate')) {
+        // User chose business registration, start it directly
+        const response = await startBusinessUserRegistration(redisClient, from);
+        // Clear registration intent
+        await redisClient.del(`registration_intent:${from}`);
+        await redisClient.del(`user_email:${from}`);
+        
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+        
       } else {
-        // Start individual user registration
+        // Invalid response, ask again
+        const storedEmail = await redisClient.get(`user_email:${from}`);
+        const emailText = storedEmail ? ` with email: ${storedEmail}` : '';
+        
+        const response = `❌ **Invalid Selection**\n\nNo account found${emailText}.\n\nPlease respond with either:\n• **"Individual"** - for personal use\n• **"Business"** - for company transactions\n\nWhat type of account do you want to create?`;
+        
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      }
+    }
+    
+    // Check if user is in email check step for registration
+    const registrationStep = await redisClient.get(`registration_step:${from}`);
+    if (registrationStep === 'email_check') {
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
+      const emailMatch = messageText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+      
+      if (emailMatch) {
+        const email = emailMatch[0];
+        const registrationType = await redisClient.get(`registration_intent:${from}`);
+        
+        // Check if user already exists
+        const userExistsResult = await userExists(redisClient, email);
+        
+        if (userExistsResult) {
+          // User exists, get their data and welcome them
+          const userData = await getUserData(redisClient, email);
+          const fullName = await getUserFullName(redisClient, email);
+          
+          if (userData) {
+            // Store user context for this session
+            const userContext = {
+              email: email,
+              userId: userData.userId,
+              userType: userData.userType,
+              fullName: fullName
+            };
+            
+            await redisClient.setEx(`user_context:${from}`, 3600, JSON.stringify(userContext));
+            
+            // Check for stored money intent before clearing
+            const storedIntent = await redisClient.get(`money_intent:${from}`);
+            logger.info(`Retrieved stored money intent for ${from}: ${storedIntent}`);
+            
+            // Clear registration intent and step
+            await redisClient.del(`registration_intent:${from}`);
+            await redisClient.del(`registration_step:${from}`);
+            
+            if (storedIntent === 'COLLECT_MONEY') {
+              // Continue with collect money flow
+              await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+              const collectMoneyResponse = await startCollectMoneyFlow(redisClient, from);
+              const response = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${collectMoneyResponse}`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: response
+              });
+              return response;
+            } else if (storedIntent === 'SEND_MONEY') {
+              // Continue with send money flow
+              await redisClient.del(`money_intent:${from}`); // Clear the stored intent
+              const sendMoneyResponse = `💰 **Send Money Flow**\n\n👋 **Welcome, ${fullName}!**\n\nI'll help you send money! Here's what we need:\n\n1. **Recipient Details** - Who you want to send money to\n2. **Amount & Currency** - How much and in what currency\n3. **Purpose** - Reason for the transfer\n4. **Payment Method** - How you want to pay\n\n**Examples of what you can say:**\n• "I want to send 1000 PHP to John Doe for rent"\n• "Send 500 USD to my sister for birthday"\n• "Transfer 2000 INR to vendor for services"\n\n**This feature is coming soon!**\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
+              const response = `👋 **Welcome back, ${fullName}!**\n\n✅ Your account is verified.\n\n${sendMoneyResponse}`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: response
+              });
+              return response;
+            } else {
+              // No stored intent, show general options
+              const welcomeMessage = `👋 **Welcome back, ${fullName}!**\n\n✅ **You already have an account!**\n\nYour account is verified. You can now:\n\n💰 **Send Money** - Transfer money to others\n💸 **Collect Money** - Receive money from others\n\nWhat would you like to do?`;
+              await addToConversationHistory(from, {
+                role: 'assistant',
+                content: welcomeMessage
+              });
+              return welcomeMessage;
+            }
+          }
+                } else {
+          // User doesn't exist, start registration flow
+          if (registrationType === 'individual') {
         const response = await startUserRegistration(redisClient, from);
+            // Clear registration intent and step
+            await redisClient.del(`registration_intent:${from}`);
+            await redisClient.del(`registration_step:${from}`);
+            await redisClient.del(`user_email:${from}`); // Clear stored email
+            
+            await addToConversationHistory(from, {
+              role: 'assistant',
+              content: response
+            });
+            return response;
+          } else if (registrationType === 'business') {
+            const response = await startBusinessUserRegistration(redisClient, from);
+            // Clear registration intent and step
+            await redisClient.del(`registration_intent:${from}`);
+            await redisClient.del(`registration_step:${from}`);
+            await redisClient.del(`user_email:${from}`); // Clear stored email
+            
+            await addToConversationHistory(from, {
+              role: 'assistant',
+              content: response
+            });
+            return response;
+          }
+        }
+      } else {
+        // No valid email provided
+        const response = "❌ **Invalid Email Format**\n\nPlease provide a valid email address (e.g., user@example.com):";
+        
         await addToConversationHistory(from, {
           role: 'assistant',
           content: response
@@ -455,67 +777,32 @@ async function processMessage(from, messageText, isDocument = false) {
       
       if (moneyIntent === 'SEND_MONEY' || moneyIntent === 'COLLECT_MONEY') {
         logger.info(`Processing ${moneyIntent} intent for user ${from}`);
-        // Check if user is already verified
-        const userContext = await redisClient.get(`user_context:${from}`);
-        logger.info(`User context for ${from}: ${userContext}`);
         
-        if (userContext) {
-          // User is already verified, proceed with money flow
-          const context = JSON.parse(userContext);
-          logger.info(`Verified user ${from} (${context.fullName}) making ${moneyIntent} request`);
-          
-          if (moneyIntent === 'COLLECT_MONEY') {
-            // Start collect money flow
-            const response = await startCollectMoneyFlow(redisClient, from);
-            await addToConversationHistory(from, {
-              role: 'assistant',
-              content: response
-            });
-            return response;
-          } else {
-            // Send money flow (coming soon)
-            const response = `👋 **Welcome back, ${context.fullName}!**\n\n💰 **Send Money Flow**\n\nI'll help you send money. This feature is coming soon!\n\nFor now, you can:\n• Ask about exchange rates\n• Register another account\n• Get help with other services`;
-            
-            await addToConversationHistory(from, {
-              role: 'assistant',
-              content: response
-            });
-            return response;
-          }
-        } else {
-          // User needs verification, ask for email
-          const verificationMessage = `🔐 **Account Verification Required**\n\nTo ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}, I need to verify your account.\n\nPlease provide your registered email address:`;
-          
-          // Store the intent in Redis for the next response
-          await redisClient.setEx(`money_intent:${from}`, 300, moneyIntent); // 5 minutes expiry
-          
-          await addToConversationHistory(from, {
-            role: 'assistant',
-            content: verificationMessage
-          });
-          return verificationMessage;
-        }
-      }
-    } else {
-      // User has a stored intent, check if they're responding to the email verification
-      if (messageText.toLowerCase().includes('cancel')) {
-        // User wants to cancel the money request
-        await redisClient.del(`money_intent:${from}`); // Clear the stored intent
-        const cancelResponse = "✅ Money request cancelled. How else can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'";
+        // Always ask for email first for money flows
+        const verificationMessage = `🔐 **Account Verification Required**\n\nTo ${moneyIntent === 'SEND_MONEY' ? 'send money' : 'collect money'}, I need to verify your account.\n\nPlease provide your registered email address:`;
+        
+        // Store the intent in Redis for the next response
+        await redisClient.setEx(`money_intent:${from}`, 300, moneyIntent); // 5 minutes expiry
         
         await addToConversationHistory(from, {
           role: 'assistant',
-          content: cancelResponse
+          content: verificationMessage
         });
-        return cancelResponse;
+        return verificationMessage;
+      }
+    } else {
+      // User has a stored intent, check if they're responding to the email verification
+      if (await handleExitRequest(from, messageText)) {
+        // User wants to exit/cancel the money request
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
       } else {
         // Process email verification
         const verificationResponse = await handleUserVerification(from, messageText);
-        
-        if (verificationResponse.includes('Welcome back')) {
-          // User verified successfully, clear the stored intent
-          await redisClient.del(`money_intent:${from}`);
-        }
         
         await addToConversationHistory(from, {
           role: 'assistant',
@@ -540,6 +827,9 @@ async function processMessage(from, messageText, isDocument = false) {
 • \`status\` - Check your registration progress
 • \`reset\` - Reset your current registration
 
+🚪 **Exit Commands:**
+• \`exit\`, \`cancel\`, \`stop\`, \`quit\`, \`back\`, \`menu\`, \`no\`, \`nevermind\`, \`end\`, \`finish\`, \`done\` - Exit from any flow and return to main menu
+
 📋 **Other Commands:**
 • \`help\` - Show this help message
 
@@ -548,11 +838,23 @@ async function processMessage(from, messageText, isDocument = false) {
 • Say "I want to collect money" to start the process
 • Ask "What are the live rates for PHP?" for exchange rates
 • Type \`register\` for direct registration
+• Type \`exit\` at any time to return to main menu
 
 📄 **Collect Money Flow:**
 1. Upload PDF invoice
 2. Provide all order details in one message (amount, currency, purpose code, etc.)
-3. Order created + payment link sent!`;
+3. Order created + payment link sent!
+
+💡 **Money Flow Examples:**
+**Send Money:**
+• "I want to send 1000 PHP to John Doe for rent"
+• "Send 500 USD to my sister for birthday"
+• "Transfer 2000 INR to vendor for services"
+
+**Collect Money:**
+• Upload PDF invoice first
+• Then provide: amount, currency, purpose, payment type, etc.
+• All in one message, one value per line`;
       
       await addToConversationHistory(from, {
         role: 'assistant',
@@ -641,6 +943,16 @@ Continue with the next question or type \`reset\` to start over.`;
     
     // Check if user is in exchange rates flow
     if (await isUserInExchangeRatesFlow(redisClient, from)) {
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
       const response = await processExchangeRatesStep(redisClient, from, messageText);
       if (response) {
         await addToConversationHistory(from, {
@@ -674,7 +986,7 @@ Continue with the next question or type \`reset\` to start over.`;
     });
     
     // Simple response logic (you can integrate OpenAI here)
-    let aiResponse = "Thank you for your message! I'm a WhatsApp financial services bot. How can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Direct Registration:**\n• Type 'register' for individual account\n• Type 'register business' for business account\n\nType 'help' for more commands!";
+    let aiResponse = "Thank you for your message! I'm a WhatsApp financial services bot. How can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Direct Registration:**\n• Type 'register' for individual account\n• Type 'register business' for business account\n\n💡 **Examples:**\n• \"I want to send 1000 PHP to John for rent\"\n• \"I want to collect money\" (then upload PDF)\n• \"What are the live rates for PHP?\"\n\nType 'help' for more commands!";
     
     // Add AI response to history
     await addToConversationHistory(from, {
