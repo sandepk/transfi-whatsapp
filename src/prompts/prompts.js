@@ -40,13 +40,15 @@ const EXCHANGE_RATES_INTENT_PROMPT = `
 You are a helpful assistant that determines if a user wants to know about exchange rates or currency information.
 
 Analyze the user's message and respond with ONLY one of these options:
-1. "EXCHANGE_RATES" - if the user wants to know exchange rates, live rates, currency rates, or similar
+1. "EXCHANGE_RATES" - if the user wants to know exchange rates, live rates, currency rates, fiat-to-crypto rates, or similar
 2. "OTHER" - for any other request
 
 Examples:
 - "What are the live rates?" → "EXCHANGE_RATES"
 - "Show me exchange rates" → "EXCHANGE_RATES"
 - "What's the current rate for PHP?" → "EXCHANGE_RATES"
+- "I want to know exchange from fiat to crypto" → "EXCHANGE_RATES"
+- "Show me fiat to crypto rates" → "EXCHANGE_RATES"
 - "I want to register" → "OTHER"
 - "Help me" → "OTHER"
 
@@ -69,10 +71,10 @@ Respond with ONLY the currency code or "NONE", nothing else.`;
 // Exchange rates response messages
 const EXCHANGE_RATES_RESPONSES = {
   // Success response when rates are fetched
-  success: (currency, rates) => `💱 **Live Exchange Rates for ${currency.toUpperCase()}**
+  success: (currency, rates) => `💱 **Live Exchange Rates for ${currency.toUpperCase()} (vs USD)**
 
-💰 **Deposit Rate:** ${rates.depositRate}
-💸 **Withdraw Rate:** ${rates.withdrawRate}
+💰 **Deposit Rate:** ${rates.depositRate} USD
+💸 **Withdraw Rate:** ${rates.withdrawRate} USD
 ⏰ **Updated:** ${new Date(rates.timestamp).toLocaleString()}
 
 To check rates for another currency, just ask! (e.g., "Show me USD rates")`,
@@ -80,7 +82,7 @@ To check rates for another currency, just ask! (e.g., "Show me USD rates")`,
   // Initial request when no currency specified
   askForCurrency: `💱 **Exchange Rates Request**
 
-I'd be happy to show you live exchange rates! 
+I'd be happy to show you live exchange rates relative to USD! 
 
 Please tell me which currency you'd like to check:
 • **PHP** (Philippine Peso)
@@ -90,7 +92,7 @@ Please tell me which currency you'd like to check:
 • **JPY** (Japanese Yen)
 • **Or any other currency code**
 
-Just type the currency code (e.g., "PHP", "USD") and I'll show you the current rates!`,
+Just type the currency code (e.g., "PHP", "USD") and I'll show you the current rates vs USD!`,
 
   // Invalid currency code error
   invalidCurrency: (currencyCode) => `❌ **Invalid Currency Code**
@@ -103,12 +105,12 @@ Please provide a valid currency code like:
 • **EUR** (Euro)
 • **GBP** (British Pound)
 
-Or you can ask me to show rates for a specific currency.`,
+Or you can ask me to show rates for a specific currency vs USD.`,
 
   // Error getting rates
   errorGettingRates: (currencyCode) => `❌ **Error Getting Rates**
 
-I couldn't retrieve the exchange rates for ${currencyCode}. This might be because:
+I couldn't retrieve the exchange rates for ${currencyCode} vs USD. This might be because:
 • The currency code is not supported
 • There's a temporary issue with the rates service
 • The currency code format is incorrect

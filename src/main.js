@@ -27,7 +27,10 @@ import {
   isUserInExchangeRatesFlow,
   processExchangeRatesStep,
   detectExchangeRatesIntent,
-  startExchangeRatesFlow
+  startExchangeRatesFlow,
+  startFiatToCryptoFlow,
+  processFiatToCryptoStep,
+  isUserInFiatToCryptoFlow
 } from './services/exchange_rates.js';
 import { 
   startCollectMoneyFlow,
@@ -297,6 +300,7 @@ async function exitFromAllFlows(redisClient, from) {
     await redisClient.del(`business_user_registration:${from}`);
     await redisClient.del(`collect_money:${from}`);
     await redisClient.del(`exchange_rates:${from}`);
+    await redisClient.del(`fiat_to_crypto_flow:${from}`);
     await redisClient.del(`money_intent:${from}`);
     await redisClient.del(`registration_intent:${from}`);
     await redisClient.del(`registration_step:${from}`);
@@ -308,7 +312,7 @@ async function exitFromAllFlows(redisClient, from) {
     
     logger.info(`Exited from all flows for user ${from}`);
     
-    return `✅ **Exited Successfully!**\n\nYou're back to the main menu. How can I help you today?\n\n💸 **Money Services:**\n• Say "I want to send money" to start sending money\n• Say "I want to collect money" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Registration:**\n• Say "register" to create an individual account\n• Say "register business" to create a business account\n\n💡 **Examples:**\n• "I want to send 1000 PHP to John for rent"\n• "I want to collect money" (then upload PDF)\n• "What are the live rates for PHP?"\n\n🚪 **Tip:** You can type \`exit\`, \`cancel\`, \`stop\`, \`quit\`, \`back\`, \`menu\`, \`no\`, \`nevermind\`, \`end\`, \`finish\`, or \`done\` at any time to return here.`;
+    return `✅ **Exited Successfully!**\n\nYou're back to the main menu. How can I help you today?\n\n💸 **Money Services:**\n• Say "I want to send money" to start sending money\n• Say "I want to collect money" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates' (vs USD)\n• Say "fiat to crypto" or "convert to crypto" for cryptocurrency quotes\n\n📝 **Registration:**\n• Say "register" to create an individual account\n• Say "register business" to create a business account\n\n💡 **Examples:**\n• "I want to send 1000 PHP to John for rent"\n• "I want to collect money" (then upload PDF)\n• "What are the live rates for PHP?"\n• "I want to know exchange from fiat to crypto"\n\n🚪 **Tip:** You can type \`exit\`, \`cancel\`, \`stop\`, \`quit\`, \`back\`, \`menu\`, \`no\`, \`nevermind\`, \`end\`, \`finish\`, or \`done\` at any time to return here.`;
   } catch (error) {
     logger.error(`Error exiting from flows: ${error.message}`);
     return "I'm sorry, there was an error. Please try again.";
@@ -318,6 +322,35 @@ async function exitFromAllFlows(redisClient, from) {
 // Process incoming message and generate AI response
 async function processMessage(from, messageText, isDocument = false) {
   try {
+    // IMMEDIATE CHECK: Check if user is in fiat-to-crypto flow first
+    const isInFiatToCryptoFlow = await isUserInFiatToCryptoFlow(redisClient, from);
+    logger.info(`User ${from} IMMEDIATE fiat-to-crypto flow check: ${isInFiatToCryptoFlow}`);
+    
+    if (isInFiatToCryptoFlow) {
+      logger.info(`User ${from} is in fiat-to-crypto flow, processing step immediately`);
+      // Check for exit request first
+      if (await handleExitRequest(from, messageText)) {
+        const exitResponse = await exitFromAllFlows(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: exitResponse
+        });
+        return exitResponse;
+      }
+      
+      const response = await processFiatToCryptoStep(redisClient, from, messageText);
+      if (response) {
+        logger.info(`Fiat-to-crypto step response: ${response.substring(0, 100)}...`);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      } else {
+        logger.warn(`No response from fiat-to-crypto step for ${from}`);
+      }
+    }
+    
     // Check if user is in individual registration flow
     if (await isUserInRegistration(redisClient, from)) {
       // Check for exit request first
@@ -679,6 +712,8 @@ async function processMessage(from, messageText, isDocument = false) {
       }
     }
     
+
+    
     // Check for money transfer/collection intent (only if not already in a flow)
     let storedIntent = await redisClient.get(`money_intent:${from}`);
     logger.info(`Redis check - storedIntent for ${from}: ${storedIntent}`);
@@ -700,6 +735,7 @@ async function processMessage(from, messageText, isDocument = false) {
       
       // Check if user has verified context and is making a new money request
       const userContext = await redisClient.get(`user_context:${from}`);
+      logger.info(`User ${from} user context: ${userContext ? 'exists' : 'none'}`);
       let moneyIntent = null;
       
        if (userContext) {
@@ -714,7 +750,7 @@ async function processMessage(from, messageText, isDocument = false) {
          }
          
          // Fallback to simple keyword detection if OpenAI fails
-         if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
+         if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'GENERAL_QUERY'].includes(moneyIntent)) {
            logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
            
            // More comprehensive fallback detection
@@ -728,10 +764,6 @@ async function processMessage(from, messageText, isDocument = false) {
                       lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
                       lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
              moneyIntent = 'COLLECT_MONEY';
-           } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
-                      lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
-                      lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
-             moneyIntent = 'EXCHANGE_RATES';
            } else {
              moneyIntent = 'GENERAL_QUERY';
            }
@@ -749,7 +781,7 @@ async function processMessage(from, messageText, isDocument = false) {
         }
         
         // Fallback to simple keyword detection if OpenAI fails or returns unexpected result
-        if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'EXCHANGE_RATES', 'GENERAL_QUERY'].includes(moneyIntent)) {
+        if (!moneyIntent || !['SEND_MONEY', 'COLLECT_MONEY', 'GENERAL_QUERY'].includes(moneyIntent)) {
           logger.info(`OpenAI returned unexpected result: "${moneyIntent}", using fallback detection`);
           
           // More comprehensive fallback detection
@@ -763,10 +795,6 @@ async function processMessage(from, messageText, isDocument = false) {
                      lowerMessage.includes('need to collect') || lowerMessage.includes('receive money') ||
                      lowerMessage.includes('get money') || lowerMessage.includes('collect cash')) {
             moneyIntent = 'COLLECT_MONEY';
-          } else if (lowerMessage.includes('exchange rate') || lowerMessage.includes('live rate') || 
-                     lowerMessage.includes('currency rate') || lowerMessage.includes('php rate') ||
-                     lowerMessage.includes('usd rate') || lowerMessage.includes('eur rate')) {
-            moneyIntent = 'EXCHANGE_RATES';
           } else {
             moneyIntent = 'GENERAL_QUERY';
           }
@@ -789,6 +817,8 @@ async function processMessage(from, messageText, isDocument = false) {
           content: verificationMessage
         });
         return verificationMessage;
+      } else {
+        logger.info(`User ${from} money intent: ${moneyIntent} (not requiring verification)`);
       }
     } else {
       // User has a stored intent, check if they're responding to the email verification
@@ -819,7 +849,11 @@ async function processMessage(from, messageText, isDocument = false) {
 💸 **Money Services:**
 • Say "I want to send money" - Start send money process
 • Say "I want to collect money" - Start collect money process (upload PDF + create order)
-• Ask about "live rates" or "exchange rates" - Get currency rates
+
+💱 **Exchange Rates:**
+• Ask about "live rates" or "exchange rates" - Get currency rates vs USD
+• Say "fiat to crypto" or "convert to crypto" - Get fiat-to-cryptocurrency quotes
+• Say "I want to know exchange from fiat to crypto" - Get cryptocurrency conversion rates
 
 📝 **Registration:**
 • \`register\` - Start individual user registration
@@ -836,7 +870,9 @@ async function processMessage(from, messageText, isDocument = false) {
 💡 **Examples:**
 • Say "I want to send money" to start the process
 • Say "I want to collect money" to start the process
-• Ask "What are the live rates for PHP?" for exchange rates
+• Ask "What are the live rates for PHP?" for exchange rates vs USD
+• Say "fiat to crypto" to get cryptocurrency quotes
+• Say "I want to know exchange from fiat to crypto" for crypto conversion rates
 • Type \`register\` for direct registration
 • Type \`exit\` at any time to return to main menu
 
@@ -965,14 +1001,52 @@ Continue with the next question or type \`reset\` to start over.`;
     
 
     
-    // Check for exchange rates intent using OpenAI
+    // Check for exchange rates intent using OpenAI - handle directly without email verification
     const exchangeRatesIntent = await detectExchangeRatesIntent(messageText);
+    logger.info(`User ${from} exchange rates intent: ${exchangeRatesIntent}`);
+    
     if (exchangeRatesIntent === 'EXCHANGE_RATES') {
-      const response = await startExchangeRatesFlow(redisClient, from, messageText);
+      // Check if this is actually a fiat-to-crypto request
+      const lowerMessage = messageText.toLowerCase();
+      logger.info(`User ${from} message contains fiat: ${lowerMessage.includes('fiat')}, crypto: ${lowerMessage.includes('crypto')}`);
+      
+      if (lowerMessage.includes('fiat') && lowerMessage.includes('crypto')) {
+        // This is a fiat-to-crypto request, not a regular exchange rate request
+        logger.info(`User ${from} starting fiat-to-crypto flow`);
+        const response = await startFiatToCryptoFlow(redisClient, from);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      } else {
+        // Regular exchange rates request
+        logger.info(`User ${from} starting regular exchange rates flow`);
+        const response = await startExchangeRatesFlow(redisClient, from, messageText);
+        await addToConversationHistory(from, {
+          role: 'assistant',
+          content: response
+        });
+        return response;
+      }
+    }
+    
+    // Check for fiat-to-crypto intent
+    const fiatCryptoMessage = messageText.toLowerCase();
+    logger.info(`User ${from} checking fiat-to-crypto keywords in message: "${messageText}"`);
+    
+    if (fiatCryptoMessage.includes('fiat to crypto') || fiatCryptoMessage.includes('convert to crypto') || 
+        fiatCryptoMessage.includes('fiat to cryptocurrency') || fiatCryptoMessage.includes('crypto quote') ||
+        fiatCryptoMessage.includes('cryptocurrency quote') || fiatCryptoMessage.includes('fiat crypto') ||
+        fiatCryptoMessage.includes('exchange from fiat to crypto') || fiatCryptoMessage.includes('exchange fiat to crypto') ||
+        fiatCryptoMessage.includes('fiat to crypto exchange') || fiatCryptoMessage.includes('crypto exchange rate') ||
+        fiatCryptoMessage.includes('fiat crypto exchange') || fiatCryptoMessage.includes('convert fiat to crypto')) {
+      logger.info(`User ${from} fiat-to-crypto keywords detected, starting flow`);
+      const response = await startFiatToCryptoFlow(redisClient, from);
       await addToConversationHistory(from, {
         role: 'assistant',
         content: response
-      });
+        });
       return response;
     }
     
@@ -986,7 +1060,7 @@ Continue with the next question or type \`reset\` to start over.`;
     });
     
     // Simple response logic (you can integrate OpenAI here)
-    let aiResponse = "Thank you for your message! I'm a WhatsApp financial services bot. How can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates'\n\n📝 **Direct Registration:**\n• Type 'register' for individual account\n• Type 'register business' for business account\n\n💡 **Examples:**\n• \"I want to send 1000 PHP to John for rent\"\n• \"I want to collect money\" (then upload PDF)\n• \"What are the live rates for PHP?\"\n\nType 'help' for more commands!";
+    let aiResponse = "Thank you for your message! I'm a WhatsApp financial services bot. How can I help you today?\n\n💸 **Money Services:**\n• Say \"I want to send money\" to start sending money\n• Say \"I want to collect money\" to start collecting money\n\n💱 **Exchange Rates:**\n• Ask about 'live rates' or 'exchange rates' (vs USD)\n• Say \"fiat to crypto\" or \"convert to crypto\" for cryptocurrency quotes\n\n📝 **Direct Registration:**\n• Type 'register' for individual account\n• Type 'register business' for business account\n\n💡 **Examples:**\n• \"I want to send 1000 PHP to John for rent\"\n• \"I want to collect money\" (then upload PDF)\n• \"What are the live rates for PHP?\"\n• \"I want to know exchange from fiat to crypto\"\n\nType 'help' for more commands!";
     
     // Add AI response to history
     await addToConversationHistory(from, {
@@ -1057,6 +1131,28 @@ app.get('/debug/messages', async (req, res) => {
     logger.error(`Error in debug endpoint: ${error.message}`);
     res.status(500).json({
       error: 'Failed to get debug info',
+      details: error.message
+    });
+  }
+});
+
+// Debug endpoint to check fiat-to-crypto flow state
+app.get('/debug/fiat-to-crypto/:whatsappNumber', async (req, res) => {
+  try {
+    const whatsappNumber = req.params.whatsappNumber;
+    const state = await getFiatToCryptoState(redisClient, whatsappNumber);
+    
+    res.status(200).json({
+      success: true,
+      whatsappNumber,
+      state,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    logger.error(`Error in fiat-to-crypto debug endpoint: ${error.message}`);
+    res.status(500).json({
+      error: 'Failed to get fiat-to-crypto state',
       details: error.message
     });
   }
